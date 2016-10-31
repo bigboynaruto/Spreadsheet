@@ -1,6 +1,3 @@
-import javafx.scene.control.Alert;
-import javafx.stage.StageStyle;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Stack;
@@ -129,7 +126,7 @@ public class SuperLexer extends SuperProcessingStrategy {
 
 
         fixedExpr = fixedExpr.replace(" ", "");
-        if (GUI && !fixedExpr.equals(expr.replace(" ", ""))) {
+        /*if (GUI && !fixedExpr.equals(expr.replace(" ", ""))) {
 //            JOptionPane.showMessageDialog(null, fixedExpr);
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Ошибочка...");
@@ -138,7 +135,7 @@ public class SuperLexer extends SuperProcessingStrategy {
             alert.initStyle(StageStyle.UNDECORATED);
 
             alert.showAndWait();
-        }
+        }*/
 
         if (DBG && false) {
             System.out.println("\t\"" + fixedExpr + "\"");

@@ -1,6 +1,10 @@
 import javafx.collections.ObservableList;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,8 +89,7 @@ public class SuperCell {
                 continue;
 
 //            System.out.println("updateCell: " + c + " " + cell);
-            String expr = expressions.get(c);
-            String rowStr, colStr;
+            /*String rowStr, colStr;
             int i = 0;
 
             while (Character.isLetter(c.charAt(i++)))
@@ -94,7 +97,7 @@ public class SuperCell {
             colStr = c.substring(0, i - 1);
             rowStr = c.substring(i - 1);
 //            System.out.println(i + " : " + rowStr + " " + colStr);
-    //        if (i > -1) return "1";//////////////////////////////////////////////////////////////
+            //        if (i > -1) return "1";//////////////////////////////////////////////////////////////
             int row = Integer.parseInt(rowStr), col = 0;
 
             i = 1;
@@ -102,7 +105,8 @@ public class SuperCell {
                 col += (colStr.charAt(colStr.length() - 1) - 'A') * i;
                 i *= 'Z' - 'A' + 1;
                 colStr = colStr.substring(0, colStr.length() - 1);
-            }
+            }*/
+            String expr = expressions.get(c);
 
 //            System.out.println(i + " : " + (row - 1) + " " + col);
 
@@ -110,7 +114,7 @@ public class SuperCell {
 //                System.out.println(cell + " : " + getCellValue(cell));
 //                System.out.println("EXPR: " + expr);
 //                System.out.println(SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(row - 1, col))), SuperCell.getCellName(row - 1, col)).toString());
-                setItem(--row, col, SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(row, col))), SuperCell.getCellName(row, col)).toString());
+                setItem(getCellRow(c), getCellColumn(c), SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(getCellRow(c), getCellColumn(c)))),SuperCell.getCellName(getCellRow(c), getCellColumn(c))).toString());
 //                rows.get(--row).get(col).setItem(SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(row, col))), SuperCell.getCellName(row, col)).toString());
 //                System.out.println();
             } catch (SuperLoopException e) {
@@ -177,5 +181,57 @@ public class SuperCell {
             System.out.println();
         }
         System.out.println("------------------------");
+    }
+
+    public static int getCellRow(String c) {
+        String rowStr;
+        int i = 0;
+
+        while (Character.isLetter(c.charAt(i++)))
+            ;
+        rowStr = c.substring(i - 1);
+        int row = Integer.parseInt(rowStr);
+
+        return --row;
+    }
+
+    public static int getCellColumn(String c) {
+        String colStr;
+        int i = 0;
+
+        while (Character.isLetter(c.charAt(i++)))
+            ;
+        colStr = c.substring(0, i - 1);
+        int col = 0;
+
+        i = 1;
+        while (!colStr.isEmpty()) {
+            col += (colStr.charAt(colStr.length() - 1) - 'A') * i;
+            i *= 'Z' - 'A' + 1;
+            colStr = colStr.substring(0, colStr.length() - 1);
+        }
+
+        return col;
+    }
+
+    public static void readFromFile(String filename) {
+        try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(filename)))) {
+            String line = null;
+            while ((line = fileReader.readLine()) != null) {
+
+            }
+        } catch (Exception e) {
+
+        }
+    }
+
+    public static void WriteToFile(String filename) {
+        try (FileWriter fileWriter = new FileWriter(filename)) {
+            for(String c : expressions.keySet()) {
+                fileWriter.write(getCellRow(c) + "  " + getCellColumn(c) + " " + getCellExpression(c) + "\n");
+            }
+        } catch (Exception e) {
+            System.err.println("Ой, что-то не так с файлом... Попробуйте в другой раз.");
+        }
     }
 }
