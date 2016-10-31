@@ -9,8 +9,8 @@ import java.util.Stack;
  * Created by sakura on 10/27/16.
  */
 public class SuperLexer extends SuperProcessingStrategy {
-    static boolean DBG = true;
-    static boolean GUI = false;
+    static boolean DBG = false;
+    static boolean GUI = true;
 
     public static String[] tokenize(String expr) {
         String cell = GUI ? expr.split("\n")[1] : "";

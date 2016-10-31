@@ -188,7 +188,7 @@ public class SuperSpreadsheet extends Application {
     }
 
     private void normalGrid(GridBase grid) {
-        SuperCell.initRows(new ArrayList<>(grid.getRowCount()));
+        SuperCell.initRows(new ArrayList<ObservableList<SpreadsheetCell>>(grid.getRowCount()));
         for (int row = 0; row < grid.getRowCount(); ++row) {
             final ObservableList<SpreadsheetCell> dataRow = FXCollections.observableArrayList();
             for (int column = 0; column < grid.getColumnCount(); ++column) {
