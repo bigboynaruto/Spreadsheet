@@ -5,7 +5,7 @@ import java.util.Arrays;
  * Created by sakura on 10/29/16.
  */
 public class SuperTester {
-    public static void main(String[] args) throws SuperLoopException {
+    public static void main(String[] args) throws Exception {
         System.out.println("---------LEXER TEST---------");
         testLexer("( 1 + 2 ) * 4");
         testLexer("( 1 + 2 )) * 4");
@@ -53,7 +53,7 @@ public class SuperTester {
         testAll("1+2-4+5");
     }
 
-    static void testLexer(String args) {
+    static void testLexer(String args) throws Exception {
         System.out.print(args);
         System.out.println(" = " + String.join(" ", SuperLexer.tokenize(args)));
     }
@@ -70,7 +70,7 @@ public class SuperTester {
         System.out.println(String.join(" ", SuperParser.parse(args.split(" ")).toArray(new String[s.size()])));
     }
 
-    static void testAll(String args) throws SuperLoopException {
+    static void testAll(String args) throws Exception {
         System.out.print(args);
         System.out.println(" = " + SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(args)), ""));
 //        System.out.println(args);

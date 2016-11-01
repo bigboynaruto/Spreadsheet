@@ -41,8 +41,8 @@ public class SuperSpreadsheet extends Application {
         normalGrid(grid);
 
         setUpSpreadsheetView(grid);
+        tf = new TextField("Добро пожаловать");
 
-        tf = new TextField("hui");
         Button addr = new Button("Add row");
         Button addc = new Button("Add col");
         tf.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -328,7 +328,7 @@ public class SuperSpreadsheet extends Application {
 
                     alert.showAndWait();
                     SuperCell.setCellExpression(cell, oldExpr);
-                    SuperCell.setItem(change.getRow(), change.getColumn(), (String)change.getOldValue());
+                    SuperCell.setItem(change.getRow(), change.getColumn(), (String) change.getOldValue());
                 }
             }
         });

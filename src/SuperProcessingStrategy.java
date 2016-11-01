@@ -91,7 +91,7 @@ public abstract class SuperProcessingStrategy {
     }
 
     protected static boolean isValidIdentifierCharacter(char c) {
-        return !Arrays.asList("+-/*%^&|<=>!({[)}] ".split("")).contains(c)/*c != '+' && c != '-' && c != '/' && c != '*'
+        return !Arrays.asList("+-/*%^&|<=>!({[)}] ".split("")).contains("" + c)/*c != '+' && c != '-' && c != '/' && c != '*'
                 && c != '%' && c != '^' && c != '&' && c != '|'
                 && c != '<' && c != '=' && c != '>' && c != '!'
                 && c != '(' && c != '{' && c != '[' && c != ')'
@@ -99,6 +99,6 @@ public abstract class SuperProcessingStrategy {
     }
 
     protected static boolean isValidCharacter(char c) {
-        return !Arrays.asList("\\#$@:;\"'_`~?".split("")).contains(c);
+        return !Arrays.asList("\\#$@:;\"'_`~?,.".split("")).contains("" + c);
     }
 }

@@ -3,6 +3,6 @@
  */
 public class SuperInvalidCharacterException extends Exception {
     SuperInvalidCharacterException(char c, int pos) {
-        super("Ой, а у вас тут символ какой-то странный: " + c + ":" + pos);
+        super("Ой, а у вас тут символ какой-то странный: " + c + " на " + pos);
     }
 }
