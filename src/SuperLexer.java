@@ -1,16 +1,12 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Stack;
 
 /**
  * Created by sakura on 10/27/16.
  */
 public class SuperLexer extends SuperProcessingStrategy {
-    static boolean DBG = false;
-    static boolean GUI = true;
-
     public static String[] tokenize(String expr) {
-        String cell = GUI ? expr.split("\n")[1] : "";
+        String cell = expr.split("\n")[1];
         expr = expr.split("\n")[0];
         expr.trim();
         expr += " ";
@@ -126,28 +122,8 @@ public class SuperLexer extends SuperProcessingStrategy {
 
 
         fixedExpr = fixedExpr.replace(" ", "");
-        /*if (GUI && !fixedExpr.equals(expr.replace(" ", ""))) {
-//            JOptionPane.showMessageDialog(null, fixedExpr);
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Ошибочка...");
-            alert.setHeaderText("Кажется, вы что-то не так написали. Но я исправил!");
-            alert.setContentText(fixedExpr);
-            alert.initStyle(StageStyle.UNDECORATED);
+//        SuperCell.setCellExpression(cell, fixedExpr);
 
-            alert.showAndWait();
-        }*/
-
-        if (DBG && false) {
-            System.out.println("\t\"" + fixedExpr + "\"");
-            System.out.println("\t" + Arrays.toString(tokens.toArray()));
-        }
-
-        /*try {
-            throw new Exception(cell);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-        SuperCell.setCellExpression(cell, fixedExpr);
         return tokens.toArray(new String[tokens.size()]);
     }
 }

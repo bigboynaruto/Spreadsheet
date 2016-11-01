@@ -11,14 +11,11 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.controlsfx.control.spreadsheet.*;
-
-import java.util.ArrayList;
 
 /**
  * Created by sakura on 10/26/16.
@@ -38,8 +35,8 @@ public class SuperSpreadsheet extends Application {
         sc = new SuperCell();
         borderPane = new BorderPane();
 
-        int rowCount = 10;
-        int columnCount = 10;
+        int rowCount = 9;
+        int columnCount = 9;
         grid = new GridBase(rowCount, columnCount);
         normalGrid(grid);
 
@@ -57,26 +54,29 @@ public class SuperSpreadsheet extends Application {
                 int column = spreadSheetView.getSelectionModel().getFocusedCell().getColumn();
                 String oldExpr = SuperCell.getCellExpression(SuperCell.getCellName(row, column));
                 String text = tf.getText();
+                String cell = SuperCell.getCellName(row, column);
                 text = text.replace(" ", "");
                 try {
-                    String prev = SuperCell.getCellValue(SuperCell.getCellName(row, column));
-                    SuperCell.setItem(row, column, SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(text + "\n" + SuperCell.getCellName(row, column))), SuperCell.getCellName(row, column)).toString());
-                    for (String tok : SuperCell.getCellExpression(SuperCell.getCellName(row, column)).split(" ")) {
+                    String prev = SuperCell.getCellValue(cell);
+                    String[] tokens = SuperLexer.tokenize(text + "\n" + cell);
+                    SuperCell.setCellExpression(cell, String.join("", tokens));
+                    SuperCell.setItem(row, column, SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
+                    for (String tok : SuperCell.getCellExpression(cell).split(" ")) {
                         if (SuperCell.isCellLink(tok)) {
-                            SuperCell.removeLink(SuperCell.getCellName(row, column), tok);
+                            SuperCell.removeLink(cell, tok);
                         }
                     }
 
-                    if (!SuperCell.getCellExpression(SuperCell.getCellName(row, column)).replace(" ", "").equals(text.replace(" ", ""))) {
+                    if (!SuperCell.getCellExpression(cell).replace(" ", "").equals(text.replace(" ", ""))) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.initStyle(StageStyle.UNDECORATED);
                         alert.setTitle("Ошибочка...");
                         alert.setHeaderText("Кажется, вы что-то не так написали. Но я исправил!");
-                        alert.setContentText(SuperCell.getCellExpression(SuperCell.getCellName(row, column)));
+                        alert.setContentText(SuperCell.getCellExpression(cell));
 
                         alert.showAndWait();
                     }
-                    tf.setText(SuperCell.getCellExpression(SuperCell.getCellName(row, column)));
+                    tf.setText(SuperCell.getCellExpression(cell));
 //                    SuperCell.updateCells(SuperCell.getCellName(row, column));
                 } catch (SuperLoopException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -85,7 +85,7 @@ public class SuperSpreadsheet extends Application {
                     alert.setHeaderText(e.getMessage());
 
                     alert.showAndWait();
-                    SuperCell.setCellExpression(SuperCell.getCellName(row, column), oldExpr);
+                    SuperCell.setCellExpression(cell, oldExpr);
                 }
             }
         });
@@ -106,6 +106,7 @@ public class SuperSpreadsheet extends Application {
         borderPane.setTop(hbox);
 
         borderPane.setCenter(spreadSheetView);
+        spreadSheetView.getSelectionModel().select(0, spreadSheetView.getColumns().get(0));
 
 //        borderPane.setLeft(buildCommonControlGrid(spreadSheetView, borderPane,"Both"));
 
@@ -209,10 +210,19 @@ public class SuperSpreadsheet extends Application {
         MenuItem openItem = new MenuItem("Открыть");
         MenuItem exitItem = new MenuItem("Выйти");
 
+        saveItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
+        openItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
+        exitItem.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
         saveItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-
+                SuperCell.writeToFile("file.txt");
+            }
+        });
+        openItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                SuperCell.readFromFile("file.txt");
             }
         });
         exitItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -236,6 +246,26 @@ public class SuperSpreadsheet extends Application {
         });
         menuFile.getItems().addAll(openItem, saveItem, new SeparatorMenuItem(), exitItem);
 
+        MenuItem addrItem = new MenuItem("Добавить строку");
+        MenuItem addcItem = new MenuItem("Добавить колонку");
+
+        addrItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
+        addcItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        addrItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                addRowCol(1, 0);
+            }
+        });
+        addcItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                addRowCol(0, 1);
+            }
+        });
+
+        menuView.getItems().addAll(addrItem, addcItem);
+
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
         ((VBox) scene.getRoot()).getChildren().addAll(menuBar, getPanel(primaryStage));
 
@@ -244,35 +274,39 @@ public class SuperSpreadsheet extends Application {
     }
 
     private void normalGrid(GridBase grid) {
-        SuperCell.initRows(new ArrayList<ObservableList<SpreadsheetCell>>(grid.getRowCount()));
+        SuperCell.initRows(grid.getRowCount());
         for (int row = 0; row < grid.getRowCount(); ++row) {
             final ObservableList<SpreadsheetCell> dataRow = FXCollections.observableArrayList();
             for (int column = 0; column < grid.getColumnCount(); ++column) {
-                dataRow.add(createEmptyCell(row, column, 1, 1)/*SpreadsheetCellType.STRING.createCell(row, column, 1, 1, "")*/);
+                dataRow.add(createEmptyCell(row, column, 1, 1));
             }
-            SuperCell.add(dataRow);
+            SuperCell.addRow(dataRow);
         }
-        grid.setRows(SuperCell.rows);
+        grid.setRows(SuperCell.getRows());
 
         grid.addEventHandler(GridChange.GRID_CHANGE_EVENT, new EventHandler<GridChange>() {
             @Override
             public void handle(GridChange change) {
 //                Thread.dumpStack();
                 String oldExpr = SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()));
+                String cell = SuperCell.getCellName(change.getRow(), change.getColumn());
                 try {
                     if (change.getNewValue() != null && !((String)change.getNewValue()).replace(" ", "").equals("")) {
-                        SuperCell.setItem(change.getRow(), change.getColumn(), SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize((String)change.getNewValue() + "\n" + SuperCell.getCellName(change.getRow(), change.getColumn()))), SuperCell.getCellName(change.getRow(), change.getColumn())).toString());
+                        String[] tokens = SuperLexer.tokenize((String)change.getNewValue() + "\n" + cell);
+                        SuperCell.setCellExpression(cell, String.join("", tokens));
+                        SuperCell.setItem(change.getRow(), change.getColumn(), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
                     } else {
-                        SuperCell.setItem(change.getRow(), change.getColumn(), "");
+                        SuperCell.setCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()), "0");
                     }
+
                     for (String tok : ((String)change.getOldValue()).split(" +-/^&|<>=!")) {
                         if (SuperCell.isCellLink(tok)) {
-                            SuperCell.removeLink(SuperCell.getCellName(change.getRow(), change.getColumn()), tok);
+                            SuperCell.removeLink(cell, tok);
                         }
                     }
 
-                    if (!SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn())).replace(" ", "").equals(((String)change.getNewValue()).replace(" ", ""))) {
-                        for (StackTraceElement s : Thread.currentThread().getStackTrace()) {
+                    if ((String)change.getNewValue() != null && !SuperCell.getCellExpression(cell).replace(" ", "").equals(((String)change.getNewValue()).replace(" ", ""))) {
+                            for (StackTraceElement s : Thread.currentThread().getStackTrace()) {
                             if (s.getMethodName().equals("showAndWait"))
                                 return;
                         }
@@ -280,7 +314,7 @@ public class SuperSpreadsheet extends Application {
                         alert.initStyle(StageStyle.UNDECORATED);
                         alert.setTitle("Ошибочка...");
                         alert.setHeaderText("Кажется, вы что-то не так написали. Но я исправил!");
-                        alert.setContentText(SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn())));
+                        alert.setContentText(SuperCell.getCellExpression(cell));
 
                         alert.showAndWait();
                     }
@@ -293,7 +327,7 @@ public class SuperSpreadsheet extends Application {
                     alert.setHeaderText(e.getMessage());
 
                     alert.showAndWait();
-                    SuperCell.setCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()), oldExpr);
+                    SuperCell.setCellExpression(cell, oldExpr);
                     SuperCell.setItem(change.getRow(), change.getColumn(), (String)change.getOldValue());
                 }
             }
@@ -303,21 +337,18 @@ public class SuperSpreadsheet extends Application {
     private void addRowCol(int drow, int dcol) {
         for (int row = 0; row < grid.getRowCount(); ++row) {
             for (int column = grid.getColumnCount(); column < grid.getColumnCount() + dcol; column++)
-                SuperCell.add(row, createEmptyCell(row, column, 1, 1));
+                SuperCell.addCell(row, createEmptyCell(row, column, 1, 1));
         }
 
         for (int row = grid.getRowCount(); row < grid.getRowCount() + drow; row++) {
             final ObservableList<SpreadsheetCell> dataRow = FXCollections.observableArrayList();
             for (int column = 0; column < grid.getColumnCount() + dcol; ++column) {
-                dataRow.add(createEmptyCell(row, column, 1, 1)/*SpreadsheetCellType.STRING.createCell(row, column, 1, 1, "")*/);
+                dataRow.add(createEmptyCell(row, column, 1, 1));
             }
-            SuperCell.add(dataRow);
+            SuperCell.addRow(dataRow);
         }
-        grid.setRows(SuperCell.rows);
+        grid.setRows(SuperCell.getRows());
         spreadSheetView.setGrid(grid);
-        for (int i = 0; i < spreadSheetView.getColumns().size(); i++) {
-            spreadSheetView.getColumns().get(i).setPrefWidth(spreadSheetView.getColumns().get(i).getWidth());
-        }
         for (int i = spreadSheetView.getColumns().size(); i < spreadSheetView.getColumns().size() + dcol; i++) {
             spreadSheetView.getColumns().get(spreadSheetView.getColumns().size() - 1).setPrefWidth(90);
         }
@@ -334,37 +365,16 @@ public class SuperSpreadsheet extends Application {
                     tf.setText(SuperCell.getCellExpression(SuperCell.getCellName(spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow(), spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn())));
             }
         });
+
         for (SpreadsheetColumn c : spreadSheetView.getColumns()) {
             c.setPrefWidth(90);
         }
+
+        addRowCol(1, 1);
     }
 
     private SpreadsheetCell createEmptyCell(int row, int column, int rowSpan, int colSpan) {
         SpreadsheetCell cell = SpreadsheetCellType.STRING.createCell(row, column, rowSpan, colSpan, "");
-        /*cell.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observableValue, String s, String s2) {
-                System.out.println("OBSVAL: '" + observableValue.getValue() + "' '" + s + "' '" + s2 + "'");
-                try {
-                    cell.setItem(SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(s2 + "\n" + SuperCell.getCellName(row, column))), SuperCell.getCellName(row, column)).toString());
-                    // /s/s/expr/
-                    for (String tok : SuperCell.getCellExpression(SuperCell.getCellName(row, column)).split(" +-/^&|<>=!")) {
-                        if (SuperCell.isCellLink(tok)) {
-                            SuperCell.removeLink(SuperCell.getCellName(row, column), tok);
-                        }
-                    }
-                    //SuperCell.updateCells(SuperCell.getCellName(row, column));
-                } catch (SuperLoopException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Ошибочка...");
-                    alert.setHeaderText(e.getMessage());
-                    alert.initStyle(StageStyle.UNDECORATED);
-
-                    alert.showAndWait();
-                    cell.setItem(s);
-                }
-            }
-        });*/
 
         return cell;
     }

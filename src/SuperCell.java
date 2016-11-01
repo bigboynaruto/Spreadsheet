@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -13,22 +14,22 @@ import java.util.HashSet;
  * Created by sakura on 10/30/16.
  */
 public class SuperCell {
-    static final HashMap<String, HashSet<String>> links = new HashMap<String, HashSet<String>>();
-    static ArrayList<ObservableList<SpreadsheetCell>> rows;
-    static HashMap<String, String> expressions = new HashMap<String, String>();
+    private static final HashMap<String, HashSet<String>> links = new HashMap<String, HashSet<String>>();
+    private static ArrayList<ObservableList<SpreadsheetCell>> rows;
+    private static HashMap<String, String> expressions = new HashMap<String, String>();
 
-    static boolean saved = false;
+    private static boolean saved = false;
 
-    public static boolean hasLink(int r1, int c1, int r2, int c2) {
-        return hasLink(getCellName(r1, c1), getCellName(r2, c2));
+    static {
+        rows = new ArrayList<ObservableList<SpreadsheetCell>>();
     }
 
-    public static void add(ObservableList<SpreadsheetCell> data) {
+    public static void addRow(ObservableList<SpreadsheetCell> data) {
         saved = false;
         rows.add(data);
     }
 
-    public static void add(int row, SpreadsheetCell data) {
+    public static void addCell(int row, SpreadsheetCell data) {
         saved = false;
         rows.get(row).add(data);
     }
@@ -39,8 +40,14 @@ public class SuperCell {
         SuperCell.updateCells(getCellName(row, column));
     }
 
-    public static void initRows(ArrayList<ObservableList<SpreadsheetCell>> list) {
-        rows = list;
+    public static void setItem(String cell, String data) {
+        saved = false;
+        rows.get(getCellRow(cell)).get(getCellColumn(cell)).setItem(data);
+        SuperCell.updateCells(cell);
+    }
+
+    public static void initRows(int size) {
+        rows = new ArrayList<ObservableList<SpreadsheetCell>>(size);
     }
 
     public static ArrayList<ObservableList<SpreadsheetCell>> getRows() {
@@ -136,7 +143,13 @@ public class SuperCell {
         if (!links.containsKey(c1))
             return false;
 
-        return links.get(c1).contains(c2);
+//        return links.get(c1).contains(c2);
+        for (String c : links.get(c1)) {
+            if (hasLink(c, c2))
+                return true;
+        }
+
+        return false;
     }
 
     public static void addLink(String c1, String c2) {
@@ -223,20 +236,36 @@ public class SuperCell {
     }
 
     public static void readFromFile(String filename) {
+        HashMap<String, String> newExprs = new HashMap<String, String>();
         try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(filename)))) {
             String line = null;
             while ((line = fileReader.readLine()) != null) {
-
+                String[] tok = line.split(" ");
+                int row = Integer.parseInt(tok[0]);
+                int column = Integer.parseInt(tok[1]);
+                String expression = String.join("\t", Arrays.copyOfRange(tok, 2, tok.length));
+                newExprs.put(getCellName(row, column), expression);
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        expressions.clear();
+        for (ObservableList<SpreadsheetCell> r : rows) {
+            for (SpreadsheetCell c : r)
+                c.setItem("");
+        }
+
+        for (String cell : newExprs.keySet()) {
+            setCellExpression(cell, newExprs.get(cell));
+            setItem(cell, newExprs.get(cell));
         }
     }
 
     public static void writeToFile(String filename) {
         try (FileWriter fileWriter = new FileWriter(filename)) {
             for(String c : expressions.keySet()) {
-                fileWriter.write(getCellRow(c) + "  " + getCellColumn(c) + " " + getCellExpression(c) + "\n");
+                fileWriter.write(getCellRow(c) + " " + getCellColumn(c) + " " + getCellExpression(c) + "\n");
             }
             saved = true;
         } catch (Exception e) {

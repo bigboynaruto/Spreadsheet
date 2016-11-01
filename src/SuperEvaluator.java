@@ -98,7 +98,7 @@ public class SuperEvaluator extends SuperProcessingStrategy {
             case "<=":
                 return new SuperBigInteger(o1.isSmallerEq(o2) ? 1 : 0);
             case "=":
-            case "eq":
+            case "eqv":
                 return new SuperBigInteger(o1.equals(o2) ? 1 : 0);
             case "!=":
             case "<>":
