@@ -128,10 +128,10 @@ public class SuperCell {
 //                System.out.println(cell + " : " + getCellValue(cell));
 //                System.out.println("EXPR: " + expr);
 //                System.out.println(SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(row - 1, col))), SuperCell.getCellName(row - 1, col)).toString());
-                setItem(getCellRow(c), getCellColumn(c), SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(getCellRow(c), getCellColumn(c)))),SuperCell.getCellName(getCellRow(c), getCellColumn(c))).toString());
+                setItem(getCellRow(c), getCellColumn(c), SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr)),SuperCell.getCellName(getCellRow(c), getCellColumn(c))).toString());
 //                rows.get(--row).get(col).setItem(SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(row, col))), SuperCell.getCellName(row, col)).toString());
 //                System.out.println();
-            } catch (SuperLoopException e) {
+            } catch (SuperLoopException | SuperInvalidCharacterException e) {
                 e.printStackTrace();
             }
         }

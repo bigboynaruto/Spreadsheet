@@ -58,7 +58,7 @@ public class SuperSpreadsheet extends Application {
                 text = text.replace(" ", "");
                 try {
                     String prev = SuperCell.getCellValue(cell);
-                    String[] tokens = SuperLexer.tokenize(text + "\n" + cell);
+                    String[] tokens = SuperLexer.tokenize(text);
                     SuperCell.setCellExpression(cell, String.join("", tokens));
                     SuperCell.setItem(row, column, SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
                     for (String tok : SuperCell.getCellExpression(cell).split(" ")) {
@@ -292,7 +292,7 @@ public class SuperSpreadsheet extends Application {
                 String cell = SuperCell.getCellName(change.getRow(), change.getColumn());
                 try {
                     if (change.getNewValue() != null && !((String)change.getNewValue()).replace(" ", "").equals("")) {
-                        String[] tokens = SuperLexer.tokenize((String)change.getNewValue() + "\n" + cell);
+                        String[] tokens = SuperLexer.tokenize((String)change.getNewValue());
                         SuperCell.setCellExpression(cell, String.join("", tokens));
                         SuperCell.setItem(change.getRow(), change.getColumn(), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
                     } else {

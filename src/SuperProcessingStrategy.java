@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.function.Consumer;
 
@@ -89,11 +90,15 @@ public abstract class SuperProcessingStrategy {
         }
     }
 
-    protected static boolean isValidIdentifierChar(char c) {
-        return c != '+' && c != '-' && c != '/' && c != '*'
+    protected static boolean isValidIdentifierCharacter(char c) {
+        return !Arrays.asList("+-/*%^&|<=>!({[)}] ".split("")).contains(c)/*c != '+' && c != '-' && c != '/' && c != '*'
                 && c != '%' && c != '^' && c != '&' && c != '|'
                 && c != '<' && c != '=' && c != '>' && c != '!'
                 && c != '(' && c != '{' && c != '[' && c != ')'
-                && c != '}' && c != ']' && c != ' ';
+                && c != '}' && c != ']' && c != ' '*/;
+    }
+
+    protected static boolean isValidCharacter(char c) {
+        return !Arrays.asList("\\#$@:;\"'_`~?".split("")).contains(c);
     }
 }

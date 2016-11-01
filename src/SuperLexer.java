@@ -5,8 +5,7 @@ import java.util.Stack;
  * Created by sakura on 10/27/16.
  */
 public class SuperLexer extends SuperProcessingStrategy {
-    public static String[] tokenize(String expr) {
-        String cell = expr.split("\n")[1];
+    public static String[] tokenize(String expr) throws SuperInvalidCharacterException {
         expr = expr.split("\n")[0];
         expr.trim();
         expr += " ";
@@ -18,8 +17,10 @@ public class SuperLexer extends SuperProcessingStrategy {
 
         while (i < len) {
             char currChar = expr.charAt(i);
+            if (!isValidCharacter(currChar))
+                throw new SuperInvalidCharacterException(currChar, i);
 
-            if (!isValidIdentifierChar(currChar) && !currToken.equals("") && !isOperator(currToken + currChar)) {
+            if (!isValidIdentifierCharacter(currChar) && !currToken.equals("") && !isOperator(currToken + currChar)) {
                 boolean currIsOperator = isOperator(currToken);
                 if (currIsOperator && lastIsOperator) {
                     fixedExpr += "0";
@@ -37,7 +38,7 @@ public class SuperLexer extends SuperProcessingStrategy {
             currToken += currChar;
             char nextChar = expr.charAt(i + 1);
 //            char nextChar = i + 1 < len ? expr.charAt(i + 1) : '1';
-            if (lastIsOperator && (currChar == '+' || currChar == '-') && isValidIdentifierChar(nextChar)) {
+            if (lastIsOperator && (currChar == '+' || currChar == '-') && isValidIdentifierCharacter(nextChar)) {
 //                currToken += currChar;
             } else if (isOpenBracket(currToken)) {
                 if (!lastIsOperator) {
