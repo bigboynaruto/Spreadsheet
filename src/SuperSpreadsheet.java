@@ -86,6 +86,14 @@ public class SuperSpreadsheet extends Application {
 
                     alert.showAndWait();
                     SuperCell.setCellExpression(cell, oldExpr);
+                } catch (SuperInvalidCharacterException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.setTitle("Ошибочка...");
+                    alert.setHeaderText(e.getMessage());
+
+                    alert.showAndWait();
+                    SuperCell.setCellExpression(cell, oldExpr);
                 }
             }
         });
@@ -329,6 +337,14 @@ public class SuperSpreadsheet extends Application {
                     alert.showAndWait();
                     SuperCell.setCellExpression(cell, oldExpr);
                     SuperCell.setItem(change.getRow(), change.getColumn(), (String)change.getOldValue());
+                } catch (SuperInvalidCharacterException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.setTitle("Ошибочка...");
+                    alert.setHeaderText(e.getMessage());
+
+                    alert.showAndWait();
+                    SuperCell.setCellExpression(cell, oldExpr);
                 }
             }
         });
