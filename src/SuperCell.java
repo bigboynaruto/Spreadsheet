@@ -17,19 +17,24 @@ public class SuperCell {
     static ArrayList<ObservableList<SpreadsheetCell>> rows;
     static HashMap<String, String> expressions = new HashMap<String, String>();
 
+    static boolean saved = false;
+
     public static boolean hasLink(int r1, int c1, int r2, int c2) {
         return hasLink(getCellName(r1, c1), getCellName(r2, c2));
     }
 
     public static void add(ObservableList<SpreadsheetCell> data) {
+        saved = false;
         rows.add(data);
     }
 
     public static void add(int row, SpreadsheetCell data) {
+        saved = false;
         rows.get(row).add(data);
     }
 
     public static void setItem(int row, int column, String data) {
+        saved = false;
         rows.get(row).get(column).setItem(data);
         SuperCell.updateCells(getCellName(row, column));
     }
@@ -73,6 +78,7 @@ public class SuperCell {
         } catch (Exception e) {
             e.printStackTrace();
         }*/
+        saved = false;
         expressions.put(c, expr);
     }
 
@@ -84,6 +90,7 @@ public class SuperCell {
     }
 
     public static void updateCells(String cell) {
+        saved = false;
         for (String c : links.keySet()) {
             if (c.equals(cell) || !links.get(c).contains(cell))
                 continue;
@@ -133,6 +140,7 @@ public class SuperCell {
     }
 
     public static void addLink(String c1, String c2) {
+        saved = false;
         if (!links.containsKey(c1)) {
             links.put(c1, new HashSet<String>());
         }
@@ -225,13 +233,18 @@ public class SuperCell {
         }
     }
 
-    public static void WriteToFile(String filename) {
+    public static void writeToFile(String filename) {
         try (FileWriter fileWriter = new FileWriter(filename)) {
             for(String c : expressions.keySet()) {
                 fileWriter.write(getCellRow(c) + "  " + getCellColumn(c) + " " + getCellExpression(c) + "\n");
             }
+            saved = true;
         } catch (Exception e) {
             System.err.println("Ой, что-то не так с файлом... Попробуйте в другой раз.");
         }
+    }
+
+    public static boolean isSaved() {
+        return saved;
     }
 }

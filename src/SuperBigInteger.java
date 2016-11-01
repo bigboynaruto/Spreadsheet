@@ -254,9 +254,13 @@ public class SuperBigInteger extends BigInteger {
         if (isNaN() || n.isNaN())
             return false;
         if (!isFinite() || !n.isFinite())
-            return false;
+            return sign() == n.sign();
 
         return super.equals(n);
+    }
+
+    public boolean equals(int n) {
+        return equals(new SuperBigInteger(n));
     }
 
     @Override

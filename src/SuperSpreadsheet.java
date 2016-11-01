@@ -1,9 +1,11 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -55,7 +57,7 @@ public class SuperSpreadsheet extends Application {
                 int column = spreadSheetView.getSelectionModel().getFocusedCell().getColumn();
                 String oldExpr = SuperCell.getCellExpression(SuperCell.getCellName(row, column));
                 String text = tf.getText();
-                text = text.replace(" \t", "");
+                text = text.replace(" ", "");
                 try {
                     String prev = SuperCell.getCellValue(SuperCell.getCellName(row, column));
                     SuperCell.setItem(row, column, SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(text + "\n" + SuperCell.getCellName(row, column))), SuperCell.getCellName(row, column)).toString());
@@ -65,12 +67,12 @@ public class SuperSpreadsheet extends Application {
                         }
                     }
 
-                    if (!SuperCell.getCellExpression(SuperCell.getCellName(row, column)).equals(text.replace(" \t", ""))) {
+                    if (!SuperCell.getCellExpression(SuperCell.getCellName(row, column)).replace(" ", "").equals(text.replace(" ", ""))) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.initStyle(StageStyle.UNDECORATED);
                         alert.setTitle("Ошибочка...");
                         alert.setHeaderText("Кажется, вы что-то не так написали. Но я исправил!");
                         alert.setContentText(SuperCell.getCellExpression(SuperCell.getCellName(row, column)));
-                        alert.initStyle(StageStyle.UNDECORATED);
 
                         alert.showAndWait();
                     }
@@ -78,9 +80,9 @@ public class SuperSpreadsheet extends Application {
 //                    SuperCell.updateCells(SuperCell.getCellName(row, column));
                 } catch (SuperLoopException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
                     alert.setTitle("Ошибочка...");
                     alert.setHeaderText(e.getMessage());
-                    alert.initStyle(StageStyle.UNDECORATED);
 
                     alert.showAndWait();
                     SuperCell.setCellExpression(SuperCell.getCellName(row, column), oldExpr);
@@ -200,8 +202,39 @@ public class SuperSpreadsheet extends Application {
         MenuBar menuBar = new MenuBar();
 
         Menu menuFile = new Menu("Файл");
-        Menu menuEdit = new Menu("Редагування");
+        Menu menuEdit = new Menu("Редактирование");
         Menu menuView = new Menu("Вид");
+
+        MenuItem saveItem = new MenuItem("Сохранить");
+        MenuItem openItem = new MenuItem("Открыть");
+        MenuItem exitItem = new MenuItem("Выйти");
+
+        saveItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+
+            }
+        });
+        exitItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                if (!SuperCell.isSaved()) {
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.setTitle("Ваш помощник на страже вашей безопасности!");
+                    alert.setHeaderText("Ой, а вы не сохранили свой файлик... Точно хотите выйти?");
+                    alert.setContentText("Подумайте дважды, перед тем, как соглашаться!");
+
+                    alert.showAndWait();
+
+                    if (alert.getResult().equals(ButtonType.OK)) {
+                        Platform.exit();
+                    }
+                }
+                else Platform.exit();
+            }
+        });
+        menuFile.getItems().addAll(openItem, saveItem, new SeparatorMenuItem(), exitItem);
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
         ((VBox) scene.getRoot()).getChildren().addAll(menuBar, getPanel(primaryStage));
@@ -227,7 +260,7 @@ public class SuperSpreadsheet extends Application {
 //                Thread.dumpStack();
                 String oldExpr = SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()));
                 try {
-                    if (change.getNewValue() != null && !((String)change.getNewValue()).trim().equals("")) {
+                    if (change.getNewValue() != null && !((String)change.getNewValue()).replace(" ", "").equals("")) {
                         SuperCell.setItem(change.getRow(), change.getColumn(), SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize((String)change.getNewValue() + "\n" + SuperCell.getCellName(change.getRow(), change.getColumn()))), SuperCell.getCellName(change.getRow(), change.getColumn())).toString());
                     } else {
                         SuperCell.setItem(change.getRow(), change.getColumn(), "");
@@ -238,16 +271,16 @@ public class SuperSpreadsheet extends Application {
                         }
                     }
 
-                    if (!SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn())).equals(((String)change.getNewValue()).replace(" \t", ""))) {
+                    if (!SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn())).replace(" ", "").equals(((String)change.getNewValue()).replace(" ", ""))) {
                         for (StackTraceElement s : Thread.currentThread().getStackTrace()) {
                             if (s.getMethodName().equals("showAndWait"))
                                 return;
                         }
                         Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.initStyle(StageStyle.UNDECORATED);
                         alert.setTitle("Ошибочка...");
                         alert.setHeaderText("Кажется, вы что-то не так написали. Но я исправил!");
                         alert.setContentText(SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn())));
-                        alert.initStyle(StageStyle.UNDECORATED);
 
                         alert.showAndWait();
                     }
@@ -255,9 +288,9 @@ public class SuperSpreadsheet extends Application {
 //                    SuperCell.updateCells(SuperCell.getCellName(change.getRow(), change.getColumn()));
                 } catch (SuperLoopException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
                     alert.setTitle("Ошибочка...");
                     alert.setHeaderText(e.getMessage());
-                    alert.initStyle(StageStyle.UNDECORATED);
 
                     alert.showAndWait();
                     SuperCell.setCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()), oldExpr);
