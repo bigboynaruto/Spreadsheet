@@ -78,15 +78,7 @@ public class SuperSpreadsheet extends Application {
                     }
                     tf.setText(SuperCell.getCellExpression(cell));
 //                    SuperCell.updateCells(SuperCell.getCellName(row, column));
-                } catch (SuperLoopException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.setTitle("Ошибочка...");
-                    alert.setHeaderText(e.getMessage());
-
-                    alert.showAndWait();
-                    SuperCell.setCellExpression(cell, oldExpr);
-                } catch (SuperInvalidCharacterException e) {
+                } catch (SuperLoopException | SuperInvalidCharacterException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.initStyle(StageStyle.UNDECORATED);
                     alert.setTitle("Ошибочка...");
@@ -328,7 +320,7 @@ public class SuperSpreadsheet extends Application {
                     }
 
 //                    SuperCell.updateCells(SuperCell.getCellName(change.getRow(), change.getColumn()));
-                } catch (SuperLoopException e) {
+                } catch (SuperLoopException | SuperInvalidCharacterException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.initStyle(StageStyle.UNDECORATED);
                     alert.setTitle("Ошибочка...");
@@ -337,14 +329,6 @@ public class SuperSpreadsheet extends Application {
                     alert.showAndWait();
                     SuperCell.setCellExpression(cell, oldExpr);
                     SuperCell.setItem(change.getRow(), change.getColumn(), (String)change.getOldValue());
-                } catch (SuperInvalidCharacterException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.setTitle("Ошибочка...");
-                    alert.setHeaderText(e.getMessage());
-
-                    alert.showAndWait();
-                    SuperCell.setCellExpression(cell, oldExpr);
                 }
             }
         });
