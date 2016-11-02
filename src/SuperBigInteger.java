@@ -137,7 +137,7 @@ public class SuperBigInteger extends BigInteger {
         if (!isFinite() || !n.isFinite())
             return sign() == n.sign() ? PINF : NINF;
 
-        return new SuperBigInteger(super.multiply(n));
+        return new SuperBigInteger(super.divide(n));
     }
 
     public SuperBigInteger mod(SuperBigInteger n) {

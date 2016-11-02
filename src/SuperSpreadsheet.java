@@ -106,7 +106,7 @@ public class SuperSpreadsheet extends Application {
         borderPane.setTop(hbox);
 
         borderPane.setCenter(spreadSheetView);
-        spreadSheetView.getSelectionModel().select(0, spreadSheetView.getColumns().get(0));
+//        spreadSheetView.getSelectionModel().select(0, spreadSheetView.getColumns().get(0));
 
 //        borderPane.setLeft(buildCommonControlGrid(spreadSheetView, borderPane,"Both"));
 
@@ -141,7 +141,6 @@ public class SuperSpreadsheet extends Application {
         rowHeaderLabel.getStyleClass().add("property");
         grid.add(rowHeaderLabel, 0, row);
         rowHeader.setSelected(true);
-        spreadSheetView.setShowRowHeader(true);
         grid.add(rowHeader, 1, row++);
         rowHeader.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -155,6 +154,7 @@ public class SuperSpreadsheet extends Application {
         columnHeaderLabel.getStyleClass().add("property");
         grid.add(columnHeaderLabel, 0, row);
         columnHeader.setSelected(true);
+        spreadSheetView.setShowRowHeader(true);
         spreadSheetView.setShowColumnHeader(true);
         grid.add(columnHeader, 1, row++);
         columnHeader.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -216,13 +216,13 @@ public class SuperSpreadsheet extends Application {
         saveItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                SuperCell.writeToFile("file.txt");
+                SuperCell.writeToFile("test");
             }
         });
         openItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                SuperCell.readFromFile("file.txt");
+                SuperCell.readFromFile("test");
             }
         });
         exitItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -231,7 +231,7 @@ public class SuperSpreadsheet extends Application {
                 if (!SuperCell.isSaved()) {
                     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                     alert.initStyle(StageStyle.UNDECORATED);
-                    alert.setTitle("Ваш помощник на страже вашей безопасности!");
+                    alert.setTitle("Помощник <имя> на страже вашей безопасности!");
                     alert.setHeaderText("Ой, а вы не сохранили свой файлик... Точно хотите выйти?");
                     alert.setContentText("Подумайте дважды, перед тем, как соглашаться!");
 

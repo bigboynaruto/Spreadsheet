@@ -62,7 +62,6 @@ public class SuperCell {
             ;
         colStr = c.substring(0, i - 1);
         rowStr = c.substring(i - 1);
-//        System.out.println(i + " : " + rowStr + " " + colStr);
 //        if (i > -1) return "1";//////////////////////////////////////////////////////////////
         int row = Integer.parseInt(rowStr), col = 0;
 
@@ -73,18 +72,10 @@ public class SuperCell {
             colStr = colStr.substring(0, colStr.length() - 1);
         }
 
-//        System.out.println(i + " : " + (row - 1) + " " + col);
-
         return rows.get(--row).get(col).getText().equals("") ? "" : rows.get(row).get(col).getText();
     }
 
     public static void setCellExpression(String c, String expr) {
-//        System.out.println("SETCELLEXPR: " + expr);
-        /*try {
-            throw new Exception();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
         saved = false;
         expressions.put(c, expr);
     }
@@ -102,35 +93,10 @@ public class SuperCell {
             if (c.equals(cell) || !links.get(c).contains(cell))
                 continue;
 
-//            System.out.println("updateCell: " + c + " " + cell);
-            /*String rowStr, colStr;
-            int i = 0;
-
-            while (Character.isLetter(c.charAt(i++)))
-                ;
-            colStr = c.substring(0, i - 1);
-            rowStr = c.substring(i - 1);
-//            System.out.println(i + " : " + rowStr + " " + colStr);
-            //        if (i > -1) return "1";//////////////////////////////////////////////////////////////
-            int row = Integer.parseInt(rowStr), col = 0;
-
-            i = 1;
-            while (!colStr.isEmpty()) {
-                col += (colStr.charAt(colStr.length() - 1) - 'A') * i;
-                i *= 'Z' - 'A' + 1;
-                colStr = colStr.substring(0, colStr.length() - 1);
-            }*/
             String expr = expressions.get(c);
 
-//            System.out.println(i + " : " + (row - 1) + " " + col);
-
             try {
-//                System.out.println(cell + " : " + getCellValue(cell));
-//                System.out.println("EXPR: " + expr);
-//                System.out.println(SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(row - 1, col))), SuperCell.getCellName(row - 1, col)).toString());
                 setItem(getCellRow(c), getCellColumn(c), SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr)),SuperCell.getCellName(getCellRow(c), getCellColumn(c))).toString());
-//                rows.get(--row).get(col).setItem(SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr + "\n" + SuperCell.getCellName(row, col))), SuperCell.getCellName(row, col)).toString());
-//                System.out.println();
             } catch (SuperLoopException | SuperInvalidCharacterException e) {
                 e.printStackTrace();
             }
@@ -158,13 +124,6 @@ public class SuperCell {
             links.put(c1, new HashSet<String>());
         }
 
-//        System.out.println("addLink: " + c1 + " " + c2);
-
-        /*try {
-            throw new Exception();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
         links.get(c1).add(c2);
 //        printLinks();
     }
@@ -185,7 +144,6 @@ public class SuperCell {
             column /= aNum;
         }
 
-//        System.out.println(row + " " + column + " " + ((res.equals("") ? "A" : res) + row));
         return (res.equals("") ? "A" : res) + row;
     }
 
@@ -246,19 +204,27 @@ public class SuperCell {
                 String expression = String.join("\t", Arrays.copyOfRange(tok, 2, tok.length));
                 newExprs.put(getCellName(row, column), expression);
             }
+
+
+            expressions.clear();
+            for (ObservableList<SpreadsheetCell> r : rows) {
+                for (SpreadsheetCell c : r)
+                    c.setItem("");
+            }
+
+            for (String cell : newExprs.keySet()) {
+                setCellExpression(cell, newExprs.get(cell));
+
+                String[] tokens = SuperLexer.tokenize(newExprs.get(cell));
+                setItem(getCellRow(cell), getCellColumn(cell), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
+
+//                setItem(cell, newExprs.get(cell));
+            }
+        } catch (SuperLoopException e) {
+
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-        expressions.clear();
-        for (ObservableList<SpreadsheetCell> r : rows) {
-            for (SpreadsheetCell c : r)
-                c.setItem("");
-        }
-
-        for (String cell : newExprs.keySet()) {
-            setCellExpression(cell, newExprs.get(cell));
-            setItem(cell, newExprs.get(cell));
+            return;
         }
     }
 

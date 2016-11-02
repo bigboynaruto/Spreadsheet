@@ -6,7 +6,6 @@ import java.util.Stack;
  */
 public class SuperLexer extends SuperProcessingStrategy {
     public static String[] tokenize(String expr) throws SuperInvalidCharacterException {
-        expr = expr.split("\n")[0];
         expr.trim();
         expr += " ";
         ArrayList<String> tokens = new ArrayList<String>();
