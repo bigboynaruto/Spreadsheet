@@ -19,6 +19,7 @@ public class SuperCell {
     private static HashMap<String, String> expressions = new HashMap<String, String>();
 
     private static boolean saved = false;
+    private static String movingCell = null;
 
     static {
         rows = new ArrayList<ObservableList<SpreadsheetCell>>();
@@ -241,5 +242,14 @@ public class SuperCell {
 
     public static boolean isSaved() {
         return saved;
+    }
+
+    public static void moveCell(String cell) {
+        movingCell = cell;
+    }
+
+    public static void pasteCell(String cell) {
+        setCellExpression(cell, expressions.get(cell));
+        movingCell = null;
     }
 }
