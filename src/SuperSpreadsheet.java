@@ -17,6 +17,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.controlsfx.control.spreadsheet.*;
 
+import java.util.ArrayList;
+
 /**
  * Created by sakura on 10/26/16.
  */
@@ -248,9 +250,13 @@ public class SuperSpreadsheet extends Application {
 
         MenuItem addrItem = new MenuItem("Добавить строку");
         MenuItem addcItem = new MenuItem("Добавить колонку");
+        MenuItem removerItem = new MenuItem("Удалить строку");
+        MenuItem removecItem = new MenuItem("Удалить колонку");
 
         addrItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
         addcItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        removerItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
+        removecItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
         addrItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
@@ -263,8 +269,33 @@ public class SuperSpreadsheet extends Application {
                 addRowCol(0, 1);
             }
         });
+        removerItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                if (spreadSheetView.getSelectionModel().getSelectedCells().isEmpty())
+                    return;
+//                SuperCell.removeRow(spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow());
+//                grid.setRows(SuperCell.getRows());
+//                spreadSheetView.setGrid(grid);
+                int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
+                int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
+                removeRow(spreadSheetView, row, col);
+                SuperCell.rowRemoved(row);
+            }
+        });
+        removecItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                if (spreadSheetView.getSelectionModel().getSelectedCells().isEmpty())
+                    return;
 
-        menuView.getItems().addAll(addrItem, addcItem);
+                SuperCell.removeColumn(spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn());
+                grid.setRows(SuperCell.getRows());
+                spreadSheetView.setGrid(grid);
+            }
+        });
+
+        menuView.getItems().addAll(addrItem, addcItem, new SeparatorMenuItem(), removerItem, removecItem);
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
         ((VBox) scene.getRoot()).getChildren().addAll(menuBar, getPanel(primaryStage));
@@ -335,6 +366,8 @@ public class SuperSpreadsheet extends Application {
     }
 
     private void addRowCol(int drow, int dcol) {
+        if (drow < 0 || dcol < 0) return;
+
         for (int row = 0; row < grid.getRowCount(); ++row) {
             for (int column = grid.getColumnCount(); column < grid.getColumnCount() + dcol; column++)
                 SuperCell.addCell(row, createEmptyCell(row, column, 1, 1));
@@ -356,8 +389,7 @@ public class SuperSpreadsheet extends Application {
 
     private void setUpSpreadsheetView(GridBase grid) {
         spreadSheetView = new SpreadsheetView(grid);
-        spreadSheetView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        spreadSheetView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        spreadSheetView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         spreadSheetView.getSelectionModel().getSelectedCells().addListener(new ListChangeListener<TablePosition>() {
             @Override
             public void onChanged(Change<? extends TablePosition> change) {
@@ -371,6 +403,73 @@ public class SuperSpreadsheet extends Application {
         }
 
         addRowCol(1, 1);
+    }
+
+    public void removeRow(SpreadsheetView table, int selectedRow, int selectedCol) {
+        if (table == null || selectedRow < 0 || !table.isEditable()) {
+            return;
+        }
+
+        Grid oldGrid = table.getGrid();
+        ObservableList<ObservableList<SpreadsheetCell>> rowsOld = oldGrid.getRows();
+        ArrayList<ObservableList<SpreadsheetCell>> rows = new ArrayList<ObservableList<SpreadsheetCell>>();
+        int newRows = 0;
+
+        if (selectedRow >= rowsOld.size() || selectedRow < 0) {
+            return;
+            // Can not remove the only row a table has. Cleans it.
+        } else if (oldGrid.getRowCount() == 1) {
+            for (int column = 0; column < oldGrid.getColumnCount(); ++column) {
+                oldGrid.setCellValue(0, column, null);
+            }
+            return;
+        }
+
+        SpreadsheetCell newElem;
+        // Loops throw each row not to be removed, adding them to a array that contains the old row set,
+        // but without the removed row.
+        for (int i = 0; i < rowsOld.size(); i++) {
+            if (i == selectedRow) {
+                continue;
+            }
+
+            // Copies a row, cell by cell, it's type and value
+            final ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
+            for (int column = 0; column < oldGrid.getColumnCount(); ++column) {
+
+                SpreadsheetCellType cellType = rowsOld.get(i).get(column).getCellType();
+                Class<? extends SpreadsheetCellType> cls = cellType.getClass();
+                int rowSpan = rowsOld.get(i).get(column).getRowSpan();
+                int columnSpan = rowsOld.get(i).get(column).getColumnSpan();
+
+                //get the current cell value
+                Object item = rowsOld.get(i).get(column).getItem();
+                newElem = createEmptyCell(newRows, column, rowSpan, columnSpan);//SpreadsheetCellType.STRING.createCell(newRows, column, rowSpan, columnSpan, null);
+
+                if (newElem != null) {
+                    //Update the new cell with the original value
+                    newElem.setItem(item);
+                    list.add(newElem);
+                }
+            }
+
+            // Adds a valid row to the set of remaining rows.
+            rows.add(list);
+            newRows++;
+        }
+
+        // Updates the grid.
+        SuperCell.setRows(rows);
+        SuperCell.rowRemoved(selectedRow);
+        oldGrid.setRows(rows);
+        oldGrid.getColumnHeaders().addAll(oldGrid.getColumnHeaders());
+        table.setGrid(oldGrid);
+
+        // Fixes the selection
+        if (selectedCol >= 0 && selectedCol < table.getColumns().size()) {
+            table.getSelectionModel().clearSelection();
+            table.getSelectionModel().select(selectedRow > 0 ? selectedRow - 1 : selectedRow, table.getColumns().get(selectedCol));
+        }
     }
 
     private SpreadsheetCell createEmptyCell(int row, int column, int rowSpan, int colSpan) {

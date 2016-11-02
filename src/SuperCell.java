@@ -20,6 +20,7 @@ public class SuperCell {
 
     private static boolean saved = false;
     private static String movingCell = null;
+    private static String movingExpr = null;
 
     static {
         rows = new ArrayList<ObservableList<SpreadsheetCell>>();
@@ -28,6 +29,34 @@ public class SuperCell {
     public static void addRow(ObservableList<SpreadsheetCell> data) {
         saved = false;
         rows.add(data);
+    }
+
+    public static void rowRemoved(int row) {
+        if (row >= rows.size() || row < 0) return;
+
+        for (String c : expressions.keySet()) {
+            if (getCellRow(c) == row)
+                expressions.remove(c);
+        }
+
+        for (int r = row; r < rows.size(); r++) {
+            for (int c = 0; c < rows.get(r).size(); c++) {
+                if (!expressions.containsKey(getCellName(r + 1, c)))
+                    continue;
+                setCellExpression(getCellName(r, c), getCellExpression(getCellName(r + 1, c)));
+                expressions.remove(getCellName(r + 1, c));
+            }
+        }
+
+        for (String c : expressions.keySet()) {
+            updateCells(c);
+        }
+    }
+
+    public static void removeColumn(int column) {
+        if (column >= rows.size() || column < 0) return;
+
+//        rows.remove(row);
     }
 
     public static void addCell(int row, SpreadsheetCell data) {
@@ -49,6 +78,10 @@ public class SuperCell {
 
     public static void initRows(int size) {
         rows = new ArrayList<ObservableList<SpreadsheetCell>>(size);
+    }
+
+    public static void setRows(ArrayList<ObservableList<SpreadsheetCell>> list) {
+        rows = list;
     }
 
     public static ArrayList<ObservableList<SpreadsheetCell>> getRows() {
@@ -98,8 +131,10 @@ public class SuperCell {
 
             try {
                 setItem(getCellRow(c), getCellColumn(c), SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr)),SuperCell.getCellName(getCellRow(c), getCellColumn(c))).toString());
-            } catch (SuperLoopException | SuperInvalidCharacterException e) {
+            } catch (/*SuperLoopException | SuperInvalidCharacterException | */Exception e) {
                 e.printStackTrace();
+                expressions.remove(c);
+                setItem(getCellRow(c), getCellColumn(c), "");
             }
         }
     }
@@ -246,10 +281,12 @@ public class SuperCell {
 
     public static void moveCell(String cell) {
         movingCell = cell;
+        movingExpr = getCellExpression(cell);
     }
 
     public static void pasteCell(String cell) {
         setCellExpression(cell, expressions.get(cell));
         movingCell = null;
+        movingExpr = null;
     }
 }
