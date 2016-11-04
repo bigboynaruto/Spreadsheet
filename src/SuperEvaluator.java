@@ -27,7 +27,10 @@ public class SuperEvaluator extends SuperProcessingStrategy {
 
     public static SuperBigInteger evaluate(ArrayList<String> rpn, String cell) throws SuperLoopException {
         Stack<String> operands = new Stack<String>();
-        System.out.println(String.join(" ", rpn.toArray(new String[rpn.size()])));
+//        System.out.println(String.join(" ", rpn.toArray(new String[rpn.size()])));
+        if (rpn.size() == 1 && rpn.get(0).equals("0")) {
+            Thread.dumpStack();
+        }
         while (!rpn.isEmpty()) {
             String head = rpn.remove(0);
             OperandType ot = OperandType.getType(head);

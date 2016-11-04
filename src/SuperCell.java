@@ -14,12 +14,11 @@ import java.util.HashSet;
  * Created by sakura on 10/30/16.
  */
 public class SuperCell {
-    private static final HashMap<String, HashSet<String>> links = new HashMap<String, HashSet<String>>();
+    private static HashMap<String, HashSet<String>> links = new HashMap<String, HashSet<String>>();
     private static ArrayList<ObservableList<SpreadsheetCell>> rows;
     private static HashMap<String, String> expressions = new HashMap<String, String>();
 
     private static boolean saved = false;
-    private static String movingCell = null;
     private static String movingExpr = null;
 
     static {
@@ -31,32 +30,28 @@ public class SuperCell {
         rows.add(data);
     }
 
-    public static void rowRemoved(int row) {
-        if (row >= rows.size() || row < 0) return;
+    public static void emptyCell(String cell) {
+        if (expressions.containsKey(cell))
+            expressions.remove(cell);
 
-        for (String c : expressions.keySet()) {
-            if (getCellRow(c) == row)
-                expressions.remove(c);
-        }
+        removeLinks(cell);
 
-        for (int r = row; r < rows.size(); r++) {
-            for (int c = 0; c < rows.get(r).size(); c++) {
-                if (!expressions.containsKey(getCellName(r + 1, c)))
-                    continue;
-                setCellExpression(getCellName(r, c), getCellExpression(getCellName(r + 1, c)));
-                expressions.remove(getCellName(r + 1, c));
-            }
-        }
-
-        for (String c : expressions.keySet()) {
-            updateCells(c);
-        }
+        setItem(getCellRow(cell), getCellColumn(cell), "");
     }
 
-    public static void removeColumn(int column) {
-        if (column >= rows.size() || column < 0) return;
+    public static void emptyCell(int row, int col) {
+        emptyCell(getCellName(row, col));
+    }
 
-//        rows.remove(row);
+    public static void updateAll() {
+
+        for (String c : new HashSet<String>(expressions.keySet())) {
+            updateCells(c);
+        }
+
+        for (String c : new HashSet<String>(expressions.keySet())) {
+            updateCells(c);
+        }
     }
 
     public static void addCell(int row, SpreadsheetCell data) {
@@ -65,6 +60,8 @@ public class SuperCell {
     }
 
     public static void setItem(int row, int column, String data) {
+        if (row >= rows.size() || column >= rows.get(row).size())
+            return;
         saved = false;
         rows.get(row).get(column).setItem(data);
         SuperCell.updateCells(getCellName(row, column));
@@ -84,33 +81,39 @@ public class SuperCell {
         rows = list;
     }
 
+    public static void setExpressions(HashMap<String, String> exprs) {
+        expressions = exprs;
+    }
+
     public static ArrayList<ObservableList<SpreadsheetCell>> getRows() {
         return rows;
     }
 
+    public static HashMap<String, HashSet<String>> getLinks() {
+        return links;
+    }
+
+    public static void setLinks(HashMap<String, HashSet<String>> newLinks) {
+        links = newLinks;
+    }
+
     public static String getCellValue(String c) {
-        String rowStr, colStr;
-        int i = 0;
+        int row = getCellRow(c);
+        int col = getCellColumn(c);
 
-        while (Character.isLetter(c.charAt(i++)))
-            ;
-        colStr = c.substring(0, i - 1);
-        rowStr = c.substring(i - 1);
-//        if (i > -1) return "1";//////////////////////////////////////////////////////////////
-        int row = Integer.parseInt(rowStr), col = 0;
+        if (row >= rows.size() || col >= rows.get(row).size())
+            return "";
 
-        i = 1;
-        while (!colStr.isEmpty()) {
-            col += (colStr.charAt(colStr.length() - 1) - 'A') * i;
-            i *= 'Z' - 'A' + 1;
-            colStr = colStr.substring(0, colStr.length() - 1);
-        }
-
-        return rows.get(--row).get(col).getText().equals("") ? "" : rows.get(row).get(col).getText();
+        return rows.get(row).get(col).getText();
     }
 
     public static void setCellExpression(String c, String expr) {
         saved = false;
+        if (expr.trim().equals("")) {
+            if (expressions.containsKey(c))
+                expressions.remove(c);
+            return;
+        }
         expressions.put(c, expr);
     }
 
@@ -123,20 +126,30 @@ public class SuperCell {
 
     public static void updateCells(String cell) {
         saved = false;
-        for (String c : links.keySet()) {
+        ArrayList<String> toRemove = new ArrayList<String>();
+        for (String c : new HashSet<String>(links.keySet())) {
             if (c.equals(cell) || !links.get(c).contains(cell))
                 continue;
+
+            if (expressions.get(c) == null) {
+                toRemove.add(c);
+                continue;
+            }
 
             String expr = expressions.get(c);
 
             try {
+                if (expr == null || expr.trim().equals(""))
+                    throw new Exception();
                 setItem(getCellRow(c), getCellColumn(c), SuperEvaluator.evaluate(SuperParser.parse(SuperLexer.tokenize(expr)),SuperCell.getCellName(getCellRow(c), getCellColumn(c))).toString());
             } catch (/*SuperLoopException | SuperInvalidCharacterException | */Exception e) {
                 e.printStackTrace();
-                expressions.remove(c);
-                setItem(getCellRow(c), getCellColumn(c), "");
+                emptyCell(c);
             }
         }
+
+        for (String c : toRemove)
+            expressions.remove(c);
     }
 
     public static boolean hasLink(String c1, String c2) {
@@ -169,6 +182,11 @@ public class SuperCell {
             return;
 
         links.get(c1).remove(c2);
+    }
+
+    public static void removeLinks(String c) {
+        if (links.containsKey(c))
+            links.remove(c);
     }
 
     public static String getCellName(int row, int column) {
@@ -280,13 +298,17 @@ public class SuperCell {
     }
 
     public static void moveCell(String cell) {
-        movingCell = cell;
         movingExpr = getCellExpression(cell);
+        emptyCell(cell);
     }
 
-    public static void pasteCell(String cell) {
-        setCellExpression(cell, expressions.get(cell));
-        movingCell = null;
+    public static void pasteCell(String cell) throws SuperCellNotSelectedException, SuperInvalidCharacterException, SuperLoopException {
+        if (movingExpr == null)
+            throw new SuperCellNotSelectedException("Сначала нужно что-то вырезать...");
+        expressions.get(cell);
+        String[] tokens = SuperLexer.tokenize(movingExpr);
+        SuperCell.setItem(getCellRow(cell), getCellColumn(cell), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
+        setCellExpression(cell, movingExpr);
         movingExpr = null;
     }
 }

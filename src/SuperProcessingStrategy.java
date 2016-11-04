@@ -19,7 +19,7 @@ public abstract class SuperProcessingStrategy {
         operators = new HashSet<SuperExpressionOperator>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
-            String line = null;
+            String line;
             while ((line = reader.readLine()) != null) {
                 String[] tokens = line.split(" ");
                 operators.add(new SuperExpressionOperator(tokens[0], Integer.parseInt(tokens[1]), tokens[2].equals("1")));
@@ -35,7 +35,7 @@ public abstract class SuperProcessingStrategy {
 
     protected static int getPriority(String val) {
         for (SuperExpressionOperator op : operators) {
-            if (op.toString() == val) return op.getPriority();
+            if (op.toString().equals(val)) return op.getPriority();
         }
 
         return 100;

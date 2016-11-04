@@ -6,7 +6,8 @@ import java.util.Arrays;
  */
 public class SuperTester {
     public static void main(String[] args) throws Exception {
-        System.out.println("---------LEXER TEST---------");
+        System.out.println(Arrays.toString(SuperParser.parse("1 + 2 * 4".split(" ")).toArray()));
+        /*System.out.println("---------LEXER TEST---------");
         testLexer("( 1 + 2 ) * 4");
         testLexer("( 1 + 2 )) * 4");
         testLexer("(( 1 + 2 ) * 4");
@@ -50,7 +51,7 @@ public class SuperTester {
         testAll("+1*+5");
         testAll("1*-3");
         testAll("1+3");
-        testAll("1+2-4+5");
+        testAll("1+2-4+5");*/
     }
 
     static void testLexer(String args) throws Exception {

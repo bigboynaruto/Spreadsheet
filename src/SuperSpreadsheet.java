@@ -7,17 +7,23 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.controlsfx.control.spreadsheet.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Optional;
 
 /**
  * Created by sakura on 10/26/16.
@@ -46,7 +52,9 @@ public class SuperSpreadsheet extends Application {
         tf = new TextField("Добро пожаловать");
 
         Button addr = new Button("Add row");
+        addr.setStyle("-fx-background-color: null;");
         Button addc = new Button("Add col");
+        addc.setStyle("-fx-background-color: null;");
         tf.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
@@ -63,7 +71,7 @@ public class SuperSpreadsheet extends Application {
                     String[] tokens = SuperLexer.tokenize(text);
                     SuperCell.setCellExpression(cell, String.join("", tokens));
                     SuperCell.setItem(row, column, SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
-                    for (String tok : SuperCell.getCellExpression(cell).split(" ")) {
+                    for (String tok : oldExpr.split(" ")) {
                         if (SuperCell.isCellLink(tok)) {
                             SuperCell.removeLink(cell, tok);
                         }
@@ -103,7 +111,7 @@ public class SuperSpreadsheet extends Application {
                 addRowCol(0, 1);
             }
         });
-        HBox hbox = new HBox(tf, addr, addc);
+        HBox hbox = new HBox(tf, addr, addc, createColorPicker("-fx-background-color", Color.WHITE), createColorPicker("-fx-text-fill", Color.BLACK));
         hbox.setHgrow(tf, Priority.ALWAYS);
         borderPane.setTop(hbox);
 
@@ -113,74 +121,6 @@ public class SuperSpreadsheet extends Application {
 //        borderPane.setLeft(buildCommonControlGrid(spreadSheetView, borderPane,"Both"));
 
         return borderPane;
-    }
-
-    /**
-     * Build a common control Grid with some options on the left to control the
-     * SpreadsheetViewInternal
-     * @param gridType
-     *
-     * @return
-     */
-    private GridPane buildCommonControlGrid(final SpreadsheetView spv,final BorderPane borderPane, String gridType) {
-        /*final GridPane grid = new GridPane();
-        grid.setHgap(5);
-        grid.setVgap(5);
-        grid.setPadding(new Insets(5, 5, 5, 5));
-
-        return grid;*/
-        final CheckBox rowHeader = new CheckBox();
-        final CheckBox columnHeader = new CheckBox();
-        final GridPane grid = new GridPane();
-        grid.setHgap(5);
-        grid.setVgap(5);
-        grid.setPadding(new Insets(5, 5, 5, 5));
-
-        int row = 0;
-
-        // row header
-        Label rowHeaderLabel = new Label("Row header: ");
-        rowHeaderLabel.getStyleClass().add("property");
-        grid.add(rowHeaderLabel, 0, row);
-        rowHeader.setSelected(true);
-        grid.add(rowHeader, 1, row++);
-        rowHeader.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
-                spreadSheetView.setShowRowHeader(arg2);
-            }
-        });
-
-        // column header
-        Label columnHeaderLabel = new Label("Column header: ");
-        columnHeaderLabel.getStyleClass().add("property");
-        grid.add(columnHeaderLabel, 0, row);
-        columnHeader.setSelected(true);
-        spreadSheetView.setShowRowHeader(true);
-        spreadSheetView.setShowColumnHeader(true);
-        grid.add(columnHeader, 1, row++);
-        columnHeader.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
-                spreadSheetView.setShowColumnHeader(arg2);
-            }
-        });
-
-        //Row Header width
-        Label rowHeaderWidth = new Label("Row header width: ");
-        rowHeaderWidth.getStyleClass().add("property");
-        grid.add(rowHeaderWidth, 0, row);
-        Slider slider = new Slider(15, 100, 30);
-//        spreadSheetView.rowHeaderWidthProperty().bind(slider.valueProperty());
-        slider.valueProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
-                spreadSheetView.setRowHeaderWidth(number2.doubleValue());
-            }
-        });
-        grid.add(slider, 1, row++);
-
-        return grid;
     }
 
     @Override
@@ -218,13 +158,43 @@ public class SuperSpreadsheet extends Application {
         saveItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                SuperCell.writeToFile("test");
+                TextInputDialog dialog = new TextInputDialog();
+                dialog.initStyle(StageStyle.UNDECORATED);
+                dialog.setContentText("Введите название файла");
+                dialog.setHeaderText("Сохранить");
+                Optional<String> res = dialog.showAndWait();
+                if (res.isPresent()) {
+                    try {
+                        SuperCell.writeToFile(res.get());
+                    } catch (Exception e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.initStyle(StageStyle.UNDECORATED);
+                        alert.setHeaderText(e.getMessage());
+
+                        alert.showAndWait();
+                    }
+                }
             }
         });
         openItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                SuperCell.readFromFile("test");
+                TextInputDialog dialog = new TextInputDialog();
+                dialog.initStyle(StageStyle.UNDECORATED);
+                dialog.setContentText("Введите название файла");
+                dialog.setHeaderText("Открыть");
+                Optional<String> res = dialog.showAndWait();
+                if (res.isPresent()) {
+                    try {
+                        SuperCell.readFromFile(res.get());
+                    } catch (Exception e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.initStyle(StageStyle.UNDECORATED);
+                        alert.setHeaderText(e.getMessage());
+
+                        alert.showAndWait();
+                    }
+                }
             }
         });
         exitItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -251,12 +221,10 @@ public class SuperSpreadsheet extends Application {
         MenuItem addrItem = new MenuItem("Добавить строку");
         MenuItem addcItem = new MenuItem("Добавить колонку");
         MenuItem removerItem = new MenuItem("Удалить строку");
-        MenuItem removecItem = new MenuItem("Удалить колонку");
 
         addrItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
         addcItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
         removerItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
-        removecItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
         addrItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
@@ -280,28 +248,137 @@ public class SuperSpreadsheet extends Application {
                 int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
                 int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
                 removeRow(spreadSheetView, row, col);
-                SuperCell.rowRemoved(row);
             }
         });
-        removecItem.setOnAction(new EventHandler<ActionEvent>() {
+
+        menuView.getItems().addAll(addrItem, addcItem, new SeparatorMenuItem(), removerItem);
+
+
+        MenuItem cutItem = new MenuItem("Вырезать");
+        MenuItem pasteItem = new MenuItem("Вставить вырезанное");
+//        MenuItem bgItem = new MenuItem("Закраска");
+
+        cutItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN));
+        pasteItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCodeCombination.SHIFT_DOWN));
+
+        cutItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                if (spreadSheetView.getSelectionModel().getSelectedCells().isEmpty())
-                    return;
+                if (spreadSheetView.getSelectionModel().getSelectedCells().size() < 1) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.setTitle("Ошибочка...");
+                    alert.setHeaderText("Выделите сначала ячейку...");
 
-                SuperCell.removeColumn(spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn());
-                grid.setRows(SuperCell.getRows());
-                spreadSheetView.setGrid(grid);
+                    alert.showAndWait();
+                    return;
+                }
+                int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
+                int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
+                SuperCell.moveCell(SuperCell.getCellName(row, col));
             }
         });
+        pasteItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                if (spreadSheetView.getSelectionModel().getSelectedCells().size() < 1) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.setTitle("Ошибочка...");
+                    alert.setHeaderText("Выделите сначала ячейку...");
 
-        menuView.getItems().addAll(addrItem, addcItem, new SeparatorMenuItem(), removerItem, removecItem);
+                    alert.showAndWait();
+                    return;
+                }
+
+                int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
+                int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
+                try {
+                    SuperCell.pasteCell(SuperCell.getCellName(row, col));
+                } catch (SuperCellNotSelectedException | SuperLoopException  e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.setTitle("Ошибочка...");
+                    alert.setHeaderText(e.getMessage());
+
+                    alert.showAndWait();
+                } catch (SuperInvalidCharacterException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.setTitle("Ошибочка...");
+                    alert.setHeaderText(e.getMessage());
+
+                    alert.showAndWait();
+                }
+
+                tf.setText(SuperCell.getCellExpression(SuperCell.getCellName(row, col)));
+            }
+        });
+        /*bgItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                if (spreadSheetView.getSelectionModel().getSelectedCells().size() < 1) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.setTitle("Ошибочка...");
+                    alert.setHeaderText("Выделите сначала ячейку...");
+
+                    alert.showAndWait();
+                    return;
+                }
+
+                final ColorPicker cp = new ColorPicker();
+                cp.setValue(Color.WHITE);
+                cp.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
+                        int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
+
+                        SpreadsheetCell cell = SuperCell.getRows().get(row).get(col);
+                        Color color = cp.getValue();
+                        double r = color.getRed(), g = color.getGreen(), b = color.getBlue();
+                        cell.setStyle("-fx-background-color: rgb(" + r + "," + g + "," + b + ");");
+                    }
+                });
+                cp.show();
+//                cell.setStyle("background-color: red");
+            }
+        });*/
+
+        menuEdit.getItems().addAll(cutItem, pasteItem, new SeparatorMenuItem()/*, bgItem*/);
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
         ((VBox) scene.getRoot()).getChildren().addAll(menuBar, getPanel(primaryStage));
 
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private ColorPicker createColorPicker(final String property, Color defaultColor) {
+        final ColorPicker colpicker = new ColorPicker(defaultColor);
+        colpicker.setTooltip(new Tooltip(property.replace("-fx-", "")));
+        colpicker.setStyle("-fx-color-label-visible: false;-fx-background-color: null;");
+
+        colpicker.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                Color color = colpicker.getValue();
+                double r = color.getRed() * 256, g = color.getGreen() * 256, b = color.getBlue() * 256;
+
+                for (TablePosition pos : spreadSheetView.getSelectionModel().getSelectedCells()) {
+                    SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
+                    String style = cell.getStyle() == null ? "" : cell.getStyle();
+
+                    style = style.replaceAll(property + ":.+?;", "");
+                    style = style + property + ": rgb(" + (int)r + "," + (int)g + "," + (int)b + ");";
+
+                    cell.setStyle(style);
+                }
+            }
+        });
+
+        return colpicker;
     }
 
     private void normalGrid(GridBase grid) {
@@ -318,7 +395,6 @@ public class SuperSpreadsheet extends Application {
         grid.addEventHandler(GridChange.GRID_CHANGE_EVENT, new EventHandler<GridChange>() {
             @Override
             public void handle(GridChange change) {
-//                Thread.dumpStack();
                 String oldExpr = SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()));
                 String cell = SuperCell.getCellName(change.getRow(), change.getColumn());
                 try {
@@ -327,9 +403,12 @@ public class SuperSpreadsheet extends Application {
                         SuperCell.setCellExpression(cell, String.join("", tokens));
                         SuperCell.setItem(change.getRow(), change.getColumn(), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
                     } else {
-                        SuperCell.setCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()), "0");
+                        SuperCell.emptyCell(change.getRow(), change.getColumn());
+//                        SuperCell.setCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()), "0");
+//                        SuperCell.setItem(change.getRow(), change.getColumn(), "");
                     }
 
+                    if ((String)change.getOldValue() != null)
                     for (String tok : ((String)change.getOldValue()).split(" +-/^&|<>=!")) {
                         if (SuperCell.isCellLink(tok)) {
                             SuperCell.removeLink(cell, tok);
@@ -419,13 +498,18 @@ public class SuperSpreadsheet extends Application {
             return;
             // Can not remove the only row a table has. Cleans it.
         } else if (oldGrid.getRowCount() == 1) {
-            for (int column = 0; column < oldGrid.getColumnCount(); ++column) {
-                oldGrid.setCellValue(0, column, null);
+            for (int column = 0; column < oldGrid.getColumnCount(); column++) {
+                SuperCell.emptyCell(0, column);
+//                SuperCell.setItem(0, column, "");
+//                SuperCell.setCellExpression(SuperCell.getCellName(0, column), "0");
+//                oldGrid.setCellValue(0, column, "");
             }
             return;
         }
 
         SpreadsheetCell newElem;
+        final HashMap<String, String> expressions = new HashMap<String, String>();
+        final HashMap<String, HashSet<String>> newLinks = new HashMap<String, HashSet<String>>();
         // Loops throw each row not to be removed, adding them to a array that contains the old row set,
         // but without the removed row.
         for (int i = 0; i < rowsOld.size(); i++) {
@@ -449,6 +533,112 @@ public class SuperSpreadsheet extends Application {
                 if (newElem != null) {
                     //Update the new cell with the original value
                     newElem.setItem(item);
+                    String currCell = SuperCell.getCellName(i, column), nextCell = SuperCell.getCellName(i > selectedRow? i - 1 : i, column);
+//                    System.out.println(nextCell + "     " + SuperCell.getCellExpression(currCell));
+                    String currExpression = SuperCell.getCellExpression(currCell);
+                    if (!currExpression.equals("")) {
+                        expressions.put(nextCell, SuperCell.getCellExpression(currCell));
+
+                        try {
+                            newLinks.put(nextCell, new HashSet<String>());
+                            String[] tokens = SuperLexer.tokenize(expressions.get(nextCell));
+                            for (int k = 0; k < tokens.length; k++) {
+                                if (SuperCell.isCellLink(tokens[k]) && SuperCell.getCellRow(tokens[k]) > selectedRow) {
+                                    System.out.print(tokens[k] + "  ");
+                                    tokens[k] = SuperCell.getCellName(SuperCell.getCellRow(tokens[k]) - 1, SuperCell.getCellColumn(tokens[k]));
+                                    System.out.println(tokens[k]);
+//                                    newLinks.get(nextCell).add(tokens[i]);
+                                }
+                                newLinks.get(nextCell).add(tokens[k]);
+                            }
+                            expressions.put(nextCell, String.join("", tokens));
+                        } catch (Exception e) {
+                            System.out.println(">" + e.getMessage() + " " + e.getClass() + " " + e.getCause());
+                            newLinks.put(nextCell, new HashSet<String>());
+                            expressions.remove(nextCell);
+//                          newExpressions.put(c, "");
+                        }
+
+                        if (newLinks.get(nextCell).isEmpty())
+                            newLinks.remove(nextCell);
+                    } else {
+
+                    }
+                    list.add(newElem);
+                }
+            }
+
+            // Adds a valid row to the set of remaining rows.
+            rows.add(list);
+            newRows++;
+        }
+
+        // Updates the grid.
+        oldGrid.setRows(rows);
+        SuperCell.setRows(rows);
+        SuperCell.setLinks(newLinks);//////////////////////////////////////////////////////////////
+        oldGrid.getColumnHeaders().addAll(oldGrid.getColumnHeaders());
+        SuperCell.setExpressions(expressions);
+        table.setGrid(oldGrid);
+        SuperCell.updateAll();
+
+        // Fixes the selection
+        if (selectedCol >= 0 && selectedCol < table.getColumns().size()) {
+            table.getSelectionModel().clearSelection();
+            table.getSelectionModel().select(selectedRow > 0 ? selectedRow - 1 : selectedRow, table.getColumns().get(selectedCol));
+        }
+    }
+
+    public void removeColumn(SpreadsheetView table, int selectedRow, int selectedCol) {
+        if (table == null || selectedCol < 0 || !table.isEditable()) {
+            return;
+        }
+
+        Grid oldGrid = table.getGrid();
+        ObservableList<ObservableList<SpreadsheetCell>> rowsOld = oldGrid.getRows();
+        ArrayList<ObservableList<SpreadsheetCell>> rows = new ArrayList<ObservableList<SpreadsheetCell>>();
+        int newRows = 0;
+
+        if (selectedRow >= rowsOld.size() || selectedCol >= rowsOld.get(selectedRow).size() || selectedCol < 0) {
+            return;
+            // Can not remove the only row a table has. Cleans it.
+        } else if (oldGrid.getColumnCount() == 1) {
+            for (int row = 0; row < oldGrid.getRowCount(); row++) {
+                SuperCell.emptyCell(row, 0);
+//                SuperCell.setItem(row, 0, "");
+//                SuperCell.setCellExpression(SuperCell.getCellName(row, 0), "0");
+//                oldGrid.setCellValue(0, column, "");
+            }
+            return;
+        }
+
+        SpreadsheetCell newElem;
+        final HashMap<String, String> expressions = new HashMap<String, String>();
+        // Loops throw each row not to be removed, adding them to a array that contains the old row set,
+        // but without the removed row.
+        for (int i = 0; i < rowsOld.size(); i++) {
+
+            // Copies a row, cell by cell, it's type and value
+            final ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
+            for (int column = 0; column < oldGrid.getColumnCount(); ++column) {
+                if (column == selectedCol) {
+                    continue;
+                }
+
+                SpreadsheetCellType cellType = rowsOld.get(i).get(column).getCellType();
+                Class<? extends SpreadsheetCellType> cls = cellType.getClass();
+                int rowSpan = rowsOld.get(i).get(column).getRowSpan();
+                int columnSpan = rowsOld.get(i).get(column).getColumnSpan();
+
+                //get the current cell value
+                Object item = rowsOld.get(i).get(column).getItem();
+                newElem = createEmptyCell(newRows, column, rowSpan, columnSpan);//SpreadsheetCellType.STRING.createCell(newRows, column, rowSpan, columnSpan, null);
+
+                if (newElem != null) {
+                    //Update the new cell with the original value
+                    newElem.setItem(item);
+                    String currCell = SuperCell.getCellName(i, column), nextCell = SuperCell.getCellName(i, column > selectedCol ? column - 1 : column);
+                    expressions.put(nextCell, SuperCell.getCellExpression(currCell));
                     list.add(newElem);
                 }
             }
@@ -460,15 +650,16 @@ public class SuperSpreadsheet extends Application {
 
         // Updates the grid.
         SuperCell.setRows(rows);
-        SuperCell.rowRemoved(selectedRow);
+        SuperCell.updateAll();
         oldGrid.setRows(rows);
         oldGrid.getColumnHeaders().addAll(oldGrid.getColumnHeaders());
+        SuperCell.setExpressions(expressions);
         table.setGrid(oldGrid);
 
         // Fixes the selection
         if (selectedCol >= 0 && selectedCol < table.getColumns().size()) {
             table.getSelectionModel().clearSelection();
-            table.getSelectionModel().select(selectedRow > 0 ? selectedRow - 1 : selectedRow, table.getColumns().get(selectedCol));
+            table.getSelectionModel().select(selectedRow, table.getColumns().get(selectedCol > 0 ? selectedCol - 1 : selectedCol));
         }
     }
 
