@@ -119,7 +119,7 @@ public class SuperCell {
 
     public static String getCellExpression(String c) {
         if (!expressions.containsKey(c))
-            return "0";
+            return "";
 
         return expressions.get(c);
     }
@@ -285,7 +285,9 @@ public class SuperCell {
     public static void writeToFile(String filename) {
         try (FileWriter fileWriter = new FileWriter(filename)) {
             for(String c : expressions.keySet()) {
-                fileWriter.write(getCellRow(c) + " " + getCellColumn(c) + " " + getCellExpression(c) + "\n");
+                int row = getCellRow(c), col = getCellColumn(c);
+                fileWriter.write(row + " " + col + " " + getCellExpression(c) + "\n");
+                fileWriter.write(rows.get(row).get(col).getStyle());
             }
             saved = true;
         } catch (Exception e) {

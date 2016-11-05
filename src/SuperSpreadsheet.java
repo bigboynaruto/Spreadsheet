@@ -1,5 +1,6 @@
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -11,10 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -55,9 +53,7 @@ public class SuperSpreadsheet extends Application {
         addr.setStyle("-fx-background-color: null;");
         Button addc = new Button("Add col");
         addc.setStyle("-fx-background-color: null;");
-        tf.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent keyEvent) {
+        tf.setOnKeyPressed(keyEvent -> {
                 if (!keyEvent.getCode().toString().equals("ENTER") || spreadSheetView.getSelectionModel().getSelectedCells().isEmpty())
                     return;
                 int row = spreadSheetView.getSelectionModel().getFocusedCell().getRow();
@@ -97,7 +93,6 @@ public class SuperSpreadsheet extends Application {
                     alert.showAndWait();
                     SuperCell.setCellExpression(cell, oldExpr);
                 }
-            }
         });
         addr.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
@@ -111,9 +106,52 @@ public class SuperSpreadsheet extends Application {
                 addRowCol(0, 1);
             }
         });
-        HBox hbox = new HBox(tf, addr, addc, createColorPicker("-fx-background-color", Color.WHITE), createColorPicker("-fx-text-fill", Color.BLACK));
+
+        final SuperFontChooser fontChooser = new SuperFontChooser();
+        fontChooser.setOnAction(handler -> {
+            spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
+                SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
+                setStyleProperty(cell.styleProperty(), "-fx-font-size", fontChooser.getValue() + " ex");
+            });
+        });
+
+        final ToggleButton boldButt = new ToggleButton("A");
+        boldButt.setSelected(false);
+        boldButt.setStyle("-fx-font-weight: bold;");
+        final ToggleButton italicButt = new ToggleButton("A");
+        italicButt.setStyle("-fx-font-style: italic;");
+        final ToggleButton underButt = new ToggleButton("A");
+
+        boldButt.setOnAction(handler -> {
+            spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
+                /*if (boldButt.isSelected()) {
+                    setStyleProperty(boldButt.styleProperty(), "-fx-border-style", "blue");
+                } else setStyleProperty(boldButt.styleProperty(), "-fx-border-style", "none");*/
+                SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
+                setStyleProperty(cell.styleProperty(), "-fx-font-weight", boldButt.isSelected() ? "bold" : "normal");
+            });
+        });
+        italicButt.setOnAction(handler -> {
+            spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
+                SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
+                setStyleProperty(cell.styleProperty(), "-fx-font-style", boldButt.isSelected() ? "italic" : "normal");
+            });
+        });
+        underButt.setOnAction(handler -> {
+            spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
+                SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
+                setStyleProperty(cell.styleProperty(), "-fx-font-style", boldButt.isSelected() ? "italic" : "normal");
+            });
+        });
+
+        HBox styleBox = new HBox(createColorPicker("-fx-background-color", Color.WHITE),
+                createColorPicker("-fx-text-fill", Color.BLACK),
+                fontChooser,
+                boldButt, italicButt, underButt);
+        HBox hbox = new HBox(tf, addr, addc);
+        VBox vbox = new VBox(styleBox, hbox);
         hbox.setHgrow(tf, Priority.ALWAYS);
-        borderPane.setTop(hbox);
+        borderPane.setTop(vbox);
 
         borderPane.setCenter(spreadSheetView);
 //        spreadSheetView.getSelectionModel().select(0, spreadSheetView.getColumns().get(0));
@@ -314,39 +352,8 @@ public class SuperSpreadsheet extends Application {
                 tf.setText(SuperCell.getCellExpression(SuperCell.getCellName(row, col)));
             }
         });
-        /*bgItem.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                if (spreadSheetView.getSelectionModel().getSelectedCells().size() < 1) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.setTitle("Ошибочка...");
-                    alert.setHeaderText("Выделите сначала ячейку...");
 
-                    alert.showAndWait();
-                    return;
-                }
-
-                final ColorPicker cp = new ColorPicker();
-                cp.setValue(Color.WHITE);
-                cp.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent actionEvent) {
-                        int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
-                        int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
-
-                        SpreadsheetCell cell = SuperCell.getRows().get(row).get(col);
-                        Color color = cp.getValue();
-                        double r = color.getRed(), g = color.getGreen(), b = color.getBlue();
-                        cell.setStyle("-fx-background-color: rgb(" + r + "," + g + "," + b + ");");
-                    }
-                });
-                cp.show();
-//                cell.setStyle("background-color: red");
-            }
-        });*/
-
-        menuEdit.getItems().addAll(cutItem, pasteItem, new SeparatorMenuItem()/*, bgItem*/);
+        menuEdit.getItems().addAll(cutItem, pasteItem);
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
         ((VBox) scene.getRoot()).getChildren().addAll(menuBar, getPanel(primaryStage));
@@ -360,25 +367,27 @@ public class SuperSpreadsheet extends Application {
         colpicker.setTooltip(new Tooltip(property.replace("-fx-", "")));
         colpicker.setStyle("-fx-color-label-visible: false;-fx-background-color: null;");
 
-        colpicker.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                Color color = colpicker.getValue();
-                double r = color.getRed() * 256, g = color.getGreen() * 256, b = color.getBlue() * 256;
+        colpicker.setOnAction(actionEvent -> {
+            Color color = colpicker.getValue();
+            double r = color.getRed() * 256, g = color.getGreen() * 256, b = color.getBlue() * 256;
 
-                for (TablePosition pos : spreadSheetView.getSelectionModel().getSelectedCells()) {
-                    SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
-                    String style = cell.getStyle() == null ? "" : cell.getStyle();
-
-                    style = style.replaceAll(property + ":.+?;", "");
-                    style = style + property + ": rgb(" + (int)r + "," + (int)g + "," + (int)b + ");";
-
-                    cell.setStyle(style);
-                }
+            for (TablePosition pos : spreadSheetView.getSelectionModel().getSelectedCells()) {
+                SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
+                setStyleProperty(cell.styleProperty(), property, "rgb(" + (int)r + "," + (int)g + "," + (int)b + ")");
             }
         });
 
         return colpicker;
+    }
+
+    private static void setStyleProperty(StringProperty style, String property, String value) {
+        String str = style == null ? "" : style.getValue();
+        str = str == null ? "" : str;
+
+        str = str.replaceAll(property + ":.+?;", "");
+        str = str + property + ":" + value + ";";
+
+        style.setValue(str);
     }
 
     private void normalGrid(GridBase grid) {
