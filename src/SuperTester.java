@@ -6,7 +6,20 @@ import java.util.Arrays;
  */
 public class SuperTester {
     public static void main(String[] args) throws Exception {
-        System.out.println(Arrays.toString(SuperParser.parse("1 + 2 * 4".split(" ")).toArray()));
+        for (int row = 0; row < 30; row++) {
+            for (int col = 0; col < 5; col++) {
+                System.out.print(SuperCell.getCellColumn(SuperCell.getCellName(col, row)) + " ");
+            }
+            System.out.println();
+        }
+
+        for (int row = 0; row < 10000; row += 'Z' - 'A' + 1) {
+            System.out.println(SuperCell.getCellColumn(SuperCell.getCellName(0, row)) + " " + row);
+        }
+
+        System.out.println(SuperCell.getCellColumn("AA1"));
+
+//        System.out.println(Arrays.toString(SuperParser.parse("1 + 2 * 4".split(" ")).toArray()));
         /*System.out.println("---------LEXER TEST---------");
         testLexer("( 1 + 2 ) * 4");
         testLexer("( 1 + 2 )) * 4");

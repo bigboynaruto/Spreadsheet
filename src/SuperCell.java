@@ -193,8 +193,10 @@ public class SuperCell {
         row++;
         String res = "";
         int aNum = 'Z' - 'A' + 1;
+        column++;
         while (column > 0) {
-            res += (char)('A' + column % aNum);
+            column--;
+            res = (char)('A' + column % aNum) + res;
             column /= aNum;
         }
 
@@ -239,10 +241,11 @@ public class SuperCell {
 
         i = 1;
         while (!colStr.isEmpty()) {
-            col += (colStr.charAt(colStr.length() - 1) - 'A') * i;
+            col += (colStr.charAt(colStr.length() - 1) - 'A' + 1) * i;
             i *= 'Z' - 'A' + 1;
             colStr = colStr.substring(0, colStr.length() - 1);
         }
+        col--;
 
         return col;
     }
