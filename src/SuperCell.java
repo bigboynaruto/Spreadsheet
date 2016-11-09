@@ -204,7 +204,8 @@ public class SuperCell {
     }
 
     public static boolean isCellLink(String s) {
-        return s.matches("[a-zA-Z]+[1-9]+[0-9]*");
+        return s.matches("[A-Z]+[1-9]+");
+//        return s.matches("[a-zA-Z]+[1-9]+[0-9]*");
     }
 
     public static void printLinks() {

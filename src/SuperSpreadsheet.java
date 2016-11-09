@@ -32,6 +32,8 @@ public class SuperSpreadsheet extends Application {
     BorderPane borderPane;
     SuperCell sc;
     TextField tf;
+    ToggleButton boldButt, italicButt, underButt;
+    Button clearButt;
 
     public static void main(String[] args) {
         launch(args);
@@ -154,18 +156,21 @@ public class SuperSpreadsheet extends Application {
             });
         });
 
-        final ToggleButton boldButt = new ToggleButton("A");
+        boldButt = new ToggleButton("A");
         boldButt.setSelected(false);
         boldButt.setStyle("-fx-font-weight:bold;");
         boldButt.setTooltip(new Tooltip("text-bold"));
-        final ToggleButton italicButt = new ToggleButton("A");
+        italicButt = new ToggleButton("A");
         italicButt.setSelected(false);
         italicButt.setStyle("-fx-font-style:italic;");
         italicButt.setTooltip(new Tooltip("text-italic"));
-        final ToggleButton underButt = new ToggleButton("A");
+        underButt = new ToggleButton("A");
         underButt.setSelected(false);
         underButt.setStyle("-fx-underline:true;");
         underButt.setTooltip(new Tooltip("text-underline"));
+        clearButt = new Button();
+        clearButt.setTooltip(new Tooltip("style-clear"));
+        clearButt.setPrefWidth(30);
 
         boldButt.setOnAction(handler -> {
             spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
@@ -183,6 +188,11 @@ public class SuperSpreadsheet extends Application {
             spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
                 SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
                 setStyleProperty(cell.styleProperty(), "-fx-underline", underButt.isSelected() ? "true" : "false");
+            });
+        });
+        clearButt.setOnAction(handler -> {
+            spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
+                SuperCell.getRows().get(pos.getRow()).get(pos.getColumn()).setStyle("");
             });
         });
 
@@ -208,7 +218,7 @@ public class SuperSpreadsheet extends Application {
         HBox styleBox = new HBox(createColorPicker("-fx-background-color", Color.WHITE),
                 createColorPicker("-fx-text-fill", Color.BLACK),
                 fontChooser,
-                boldButt, italicButt, underButt);
+                boldButt, italicButt, underButt, clearButt);
         HBox hbox = new HBox(cellChooser, tf, addr, addc);
         VBox vbox = new VBox(styleBox, hbox);
         hbox.setHgrow(tf, Priority.ALWAYS);
@@ -241,6 +251,13 @@ public class SuperSpreadsheet extends Application {
             }
         });
 
+        ((VBox) scene.getRoot()).getChildren().addAll(createMenuBar(), getPanel(primaryStage));
+
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
 
         Menu menuFile = new Menu("Файл");
@@ -344,8 +361,8 @@ public class SuperSpreadsheet extends Application {
 //                SuperCell.removeRow(spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow());
 //                grid.setRows(SuperCell.getRows());
 //                spreadSheetView.setGrid(grid);
-                int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
-                int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
+                int row = spreadSheetView.getSelectionModel().getFocusedCell().getRow();
+                int col = spreadSheetView.getSelectionModel().getFocusedCell().getColumn();
                 removeRow(spreadSheetView, row, col);
             }
         });
@@ -372,8 +389,8 @@ public class SuperSpreadsheet extends Application {
                     alert.showAndWait();
                     return;
                 }
-                int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
-                int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
+                int row = spreadSheetView.getSelectionModel().getFocusedCell().getRow();
+                int col = spreadSheetView.getSelectionModel().getFocusedCell().getColumn();
                 SuperCell.moveCell(SuperCell.getCellName(row, col));
             }
         });
@@ -390,8 +407,8 @@ public class SuperSpreadsheet extends Application {
                     return;
                 }
 
-                int row = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow();
-                int col = spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn();
+                int row = spreadSheetView.getSelectionModel().getFocusedCell().getRow();
+                int col = spreadSheetView.getSelectionModel().getFocusedCell().getColumn();
                 try {
                     SuperCell.pasteCell(SuperCell.getCellName(row, col));
                 } catch (SuperCellNotSelectedException | SuperLoopException  e) {
@@ -417,10 +434,8 @@ public class SuperSpreadsheet extends Application {
         menuEdit.getItems().addAll(cutItem, pasteItem);
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
-        ((VBox) scene.getRoot()).getChildren().addAll(menuBar, getPanel(primaryStage));
 
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        return menuBar;
     }
 
     private ColorPicker createColorPicker(final String property, Color defaultColor) {
@@ -449,6 +464,10 @@ public class SuperSpreadsheet extends Application {
         str = str + property + ":" + value + ";";
 
         style.setValue(str);
+    }
+
+    private static void setCellValue(SpreadsheetCell cell, String expr) {
+
     }
 
     private void normalGrid(GridBase grid) {
@@ -514,24 +533,24 @@ public class SuperSpreadsheet extends Application {
         });
     }
 
-    private void addRowCol(int drow, int dcol) {
-        if (drow < 0 || dcol < 0) return;
+    private void addRowCol(int dRow, int dCol) {
+        if (dRow < 0 || dCol < 0) return;
 
         for (int row = 0; row < grid.getRowCount(); ++row) {
-            for (int column = grid.getColumnCount(); column < grid.getColumnCount() + dcol; column++)
+            for (int column = grid.getColumnCount(); column < grid.getColumnCount() + dCol; column++)
                 SuperCell.addCell(row, createEmptyCell(row, column, 1, 1));
         }
 
-        for (int row = grid.getRowCount(); row < grid.getRowCount() + drow; row++) {
+        for (int row = grid.getRowCount(); row < grid.getRowCount() + dRow; row++) {
             final ObservableList<SpreadsheetCell> dataRow = FXCollections.observableArrayList();
-            for (int column = 0; column < grid.getColumnCount() + dcol; ++column) {
+            for (int column = 0; column < grid.getColumnCount() + dCol; ++column) {
                 dataRow.add(createEmptyCell(row, column, 1, 1));
             }
             SuperCell.addRow(dataRow);
         }
         grid.setRows(SuperCell.getRows());
         spreadSheetView.setGrid(grid);
-        for (int i = spreadSheetView.getColumns().size(); i < spreadSheetView.getColumns().size() + dcol; i++) {
+        for (int i = spreadSheetView.getColumns().size(); i < spreadSheetView.getColumns().size() + dCol; i++) {
             spreadSheetView.getColumns().get(spreadSheetView.getColumns().size() - 1).setPrefWidth(90);
         }
     }
@@ -542,8 +561,28 @@ public class SuperSpreadsheet extends Application {
         spreadSheetView.getSelectionModel().getSelectedCells().addListener(new ListChangeListener<TablePosition>() {
             @Override
             public void onChanged(Change<? extends TablePosition> change) {
-                if (!spreadSheetView.getSelectionModel().getSelectedCells().isEmpty())
-                    tf.setText(SuperCell.getCellExpression(SuperCell.getCellName(spreadSheetView.getSelectionModel().getSelectedCells().get(0).getRow(), spreadSheetView.getSelectionModel().getSelectedCells().get(0).getColumn())));
+                if (spreadSheetView.getSelectionModel().getSelectedCells().isEmpty())
+                    return;
+
+                int row = spreadSheetView.getSelectionModel().getFocusedCell().getRow();
+                int col = spreadSheetView.getSelectionModel().getFocusedCell().getColumn();
+                SpreadsheetCell cell = SuperCell.getRows().get(row).get(col);
+                tf.setText(SuperCell.getCellExpression(SuperCell.getCellName(row, col)));
+
+                boldButt.setSelected(cell.getStyle() != null ? cell.getStyle().contains("-fx-font-weight:bold") : false);
+                italicButt.setSelected(cell.getStyle() != null ? cell.getStyle().contains("-fx-font-style:italic") : false);
+                underButt.setSelected(cell.getStyle() != null ? cell.getStyle().contains("-fx-underline:true") : false);
+            }
+        });
+        spreadSheetView.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                if (new KeyCodeCombination(KeyCode.B, KeyCombination.CONTROL_DOWN).match(keyEvent))
+                    boldButt.fire();
+                else if (new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN).match(keyEvent))
+                    italicButt.fire();
+                else if (new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN).match(keyEvent))
+                    underButt.fire();
             }
         });
 
@@ -570,9 +609,6 @@ public class SuperSpreadsheet extends Application {
         } else if (oldGrid.getRowCount() == 1) {
             for (int column = 0; column < oldGrid.getColumnCount(); column++) {
                 SuperCell.emptyCell(0, column);
-//                SuperCell.setItem(0, column, "");
-//                SuperCell.setCellExpression(SuperCell.getCellName(0, column), "0");
-//                oldGrid.setCellValue(0, column, "");
             }
             return;
         }
@@ -659,6 +695,7 @@ public class SuperSpreadsheet extends Application {
         }
     }
 
+    /*
     public void removeColumn(SpreadsheetView table, int selectedRow, int selectedCol) {
         if (table == null || selectedCol < 0 || !table.isEditable()) {
             return;
@@ -732,10 +769,9 @@ public class SuperSpreadsheet extends Application {
             table.getSelectionModel().select(selectedRow, table.getColumns().get(selectedCol > 0 ? selectedCol - 1 : selectedCol));
         }
     }
+    */
 
     private SpreadsheetCell createEmptyCell(int row, int column, int rowSpan, int colSpan) {
-        SpreadsheetCell cell = SpreadsheetCellType.STRING.createCell(row, column, rowSpan, colSpan, "");
-
-        return cell;
+        return SpreadsheetCellType.STRING.createCell(row, column, rowSpan, colSpan, "");
     }
 }
