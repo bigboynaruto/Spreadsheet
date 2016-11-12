@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 /**
- * Spreadsheet.
  * Created by sakura on 10/30/16.
  */
 public class SuperCell {
@@ -323,13 +322,6 @@ public class SuperCell {
             throw new SuperCellNotSelectedException("Сначала нужно что-то вырезать...");
         setCellExpression(cell, movingExpr);
         movingExpr = null;
-    }
-
-    static SpreadsheetCell getCell(String cell) {
-        int row = getCellRow(cell);
-        int col = getCellColumn(cell);
-
-        return rows.get(row).get(col);
     }
 
     static void removeRow(SpreadsheetView table, int selectedRow, int selectedCol) {

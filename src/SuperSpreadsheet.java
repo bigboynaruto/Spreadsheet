@@ -23,7 +23,6 @@ import org.controlsfx.control.spreadsheet.*;
 import java.util.Optional;
 
 /**
- * Project Spreadsheet.
  * Created by sakura on 10/26/16.
  */
 public class SuperSpreadsheet extends Application {
