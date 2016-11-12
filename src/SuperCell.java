@@ -178,6 +178,10 @@ public class SuperCell {
             links.remove(c);
     }
 
+    static boolean isCellLink(String s) {
+        return s.matches("[a-zA-Z]+[1-9]+[0-9]*");
+    }
+
     static String getCellName(int row, int column) {
         row++;
         String res = "";
@@ -190,10 +194,6 @@ public class SuperCell {
         }
 
         return (res.equals("") ? "A" : res) + row;
-    }
-
-    static boolean isCellLink(String s) {
-        return s.matches("[a-zA-Z]+[1-9]+[0-9]*");
     }
 
     static int getCellRow(String c) {
@@ -311,24 +311,18 @@ public class SuperCell {
         return saved;
     }
 
-    static void moveCell(String cell) {
+    static void moveCell(int row, int col) {
+        String cell = getCellName(row, col);
         movingExpr = getCellExpression(cell);
         emptyCell(cell);
     }
 
-    static void moveCell(int row, int col) {
-        moveCell(getCellName(row, col));
-    }
-
-    static void pasteCell(String cell) throws SuperCellNotSelectedException, SuperInvalidCharacterException, SuperLoopException {
+    static void pasteCell(int row, int col) throws SuperCellNotSelectedException, SuperInvalidCharacterException, SuperLoopException {
+        String cell = getCellName(row, col);
         if (movingExpr == null)
             throw new SuperCellNotSelectedException("Сначала нужно что-то вырезать...");
         setCellExpression(cell, movingExpr);
         movingExpr = null;
-    }
-
-    static void pasteCell(int row, int col) throws SuperCellNotSelectedException, SuperInvalidCharacterException, SuperLoopException {
-        pasteCell(getCellName(row, col));
     }
 
     static SpreadsheetCell getCell(String cell) {
