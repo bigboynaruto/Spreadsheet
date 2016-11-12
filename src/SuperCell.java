@@ -1,10 +1,9 @@
 import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
+import javafx.stage.StageStyle;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,15 +14,11 @@ import java.util.HashSet;
  */
 public class SuperCell {
     private static HashMap<String, HashSet<String>> links = new HashMap<String, HashSet<String>>();
-    private static ArrayList<ObservableList<SpreadsheetCell>> rows;
+    private static ArrayList<ObservableList<SpreadsheetCell>> rows = new ArrayList<ObservableList<SpreadsheetCell>>();
     private static HashMap<String, String> expressions = new HashMap<String, String>();
 
     private static boolean saved = false;
     private static String movingExpr = null;
-
-    static {
-        rows = new ArrayList<ObservableList<SpreadsheetCell>>();
-    }
 
     public static void addRow(ObservableList<SpreadsheetCell> data) {
         saved = false;
@@ -174,7 +169,6 @@ public class SuperCell {
         }
 
         links.get(c1).add(c2);
-//        printLinks();
     }
 
     public static void removeLink(String c1, String c2) {
@@ -254,11 +248,16 @@ public class SuperCell {
     public static void readFromFile(String filename) {
         HashMap<String, String> newExprs = new HashMap<String, String>();
         try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(filename)))) {
+            int maxRow = 0, maxCol = 0;
             String line = null;
             while ((line = fileReader.readLine()) != null) {
                 String[] tok = line.split(" ");
                 int row = Integer.parseInt(tok[0]);
+                maxRow = maxRow > row ? maxRow : row;
+
                 int column = Integer.parseInt(tok[1]);
+                maxCol = maxCol > column ? maxCol : column;
+
                 String expression = String.join("\t", Arrays.copyOfRange(tok, 2, tok.length));
                 newExprs.put(getCellName(row, column), expression);
             }
@@ -271,28 +270,47 @@ public class SuperCell {
             }
 
             for (String cell : newExprs.keySet()) {
-                setCellExpression(cell, newExprs.get(cell));
+                try {
+                    String[] tokens = SuperLexer.tokenize(newExprs.get(cell));
+                    setItem(getCellRow(cell), getCellColumn(cell), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
+                    setCellExpression(cell, newExprs.get(cell));
+    //                setItem(cell, newExprs.get(cell));
+                } catch (SuperLoopException e) {
 
-                String[] tokens = SuperLexer.tokenize(newExprs.get(cell));
-                setItem(getCellRow(cell), getCellColumn(cell), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
-
-//                setItem(cell, newExprs.get(cell));
+                }
             }
-        } catch (SuperLoopException e) {
+        } catch (FileNotFoundException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initStyle(StageStyle.UNDECORATED);
+            alert.setHeaderText("Не могу найти файл " + filename + ".");
 
+            alert.showAndWait();
+            return;
         } catch (Exception e) {
-            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initStyle(StageStyle.UNDECORATED);
+            alert.setHeaderText("Ошибочка при чтении файла " + filename + ".");
+
+            alert.showAndWait();
             return;
         }
     }
 
     public static void writeToFile(String filename) {
         try (FileWriter fileWriter = new FileWriter(filename)) {
+            /*
             for(String c : expressions.keySet()) {
                 int row = getCellRow(c), col = getCellColumn(c);
                 fileWriter.write(row + " " + col + " " + getCellExpression(c) + "\n");
                 fileWriter.write(rows.get(row).get(col).getStyle());
             }
+            */
+            /*
+            int rows = rows.size();
+            for (int i = 0; i < rows; i++) {
+
+            }
+            */
             saved = true;
         } catch (Exception e) {
             System.err.println("Ой, что-то не так с файлом... Попробуйте в другой раз.");
@@ -311,10 +329,17 @@ public class SuperCell {
     public static void pasteCell(String cell) throws SuperCellNotSelectedException, SuperInvalidCharacterException, SuperLoopException {
         if (movingExpr == null)
             throw new SuperCellNotSelectedException("Сначала нужно что-то вырезать...");
-        expressions.get(cell);
+//        expressions.get(cell);
         String[] tokens = SuperLexer.tokenize(movingExpr);
         SuperCell.setItem(getCellRow(cell), getCellColumn(cell), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
         setCellExpression(cell, movingExpr);
         movingExpr = null;
+    }
+
+    public static SpreadsheetCell getCell(String cell) {
+        int row = getCellRow(cell);
+        int col = getCellColumn(cell);
+
+        return rows.get(row).get(col);
     }
 }

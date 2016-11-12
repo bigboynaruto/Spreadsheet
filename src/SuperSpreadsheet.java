@@ -31,7 +31,7 @@ public class SuperSpreadsheet extends Application {
     SpreadsheetView spreadSheetView;
     BorderPane borderPane;
     SuperCell sc;
-    TextField tf;
+    TextField tf, cellChooser;
     ToggleButton boldButt, italicButt, underButt;
     Button clearButt;
 
@@ -196,7 +196,7 @@ public class SuperSpreadsheet extends Application {
             });
         });
 
-        final TextField cellChooser = new TextField();
+        cellChooser = new TextField();
         cellChooser.setMaxWidth(100);
         cellChooser.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -484,7 +484,7 @@ public class SuperSpreadsheet extends Application {
         grid.addEventHandler(GridChange.GRID_CHANGE_EVENT, new EventHandler<GridChange>() {
             @Override
             public void handle(GridChange change) {
-                String oldExpr = SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()));
+                /*String oldExpr = SuperCell.getCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()));
                 String cell = SuperCell.getCellName(change.getRow(), change.getColumn());
                 try {
                     if (change.getNewValue() != null && !((String)change.getNewValue()).replace(" ", "").equals("")) {
@@ -493,8 +493,6 @@ public class SuperSpreadsheet extends Application {
                         SuperCell.setItem(change.getRow(), change.getColumn(), SuperEvaluator.evaluate(SuperParser.parse(tokens), cell).toString());
                     } else {
                         SuperCell.emptyCell(change.getRow(), change.getColumn());
-//                        SuperCell.setCellExpression(SuperCell.getCellName(change.getRow(), change.getColumn()), "0");
-//                        SuperCell.setItem(change.getRow(), change.getColumn(), "");
                     }
 
                     if ((String)change.getOldValue() != null)
@@ -528,9 +526,60 @@ public class SuperSpreadsheet extends Application {
                     alert.showAndWait();
                     SuperCell.setCellExpression(cell, oldExpr);
                     SuperCell.setItem(change.getRow(), change.getColumn(), (String) change.getOldValue());
-                }
+                }*/
+                String cell = SuperCell.getCellName(change.getRow(), change.getColumn());
+                setCell(SuperCell.getCell(cell), (String)change.getNewValue());
             }
         });
+    }
+
+    private static void setCell(SpreadsheetCell cell, String expr) {
+        if (expr == null)
+            expr = "";
+        int row = cell.getRow(), column = cell.getColumn();
+        String cellName = SuperCell.getCellName(row, column);
+        String oldExpr = SuperCell.getCellExpression(SuperCell.getCellName(row, column));
+        try {
+            if (expr != null && !(expr).replace(" ", "").equals("")) {
+                String[] tokens = SuperLexer.tokenize(expr);
+                SuperCell.setCellExpression(cellName, String.join("", tokens));
+                SuperCell.setItem(row, column, SuperEvaluator.evaluate(SuperParser.parse(tokens), cellName).toString());
+            } else {
+                SuperCell.emptyCell(row, column);
+            }
+
+            if (!oldExpr.equals(""))
+                for (String tok : (oldExpr).split(" +-/^&|<>=!")) {
+                    if (SuperCell.isCellLink(tok)) {
+                        SuperCell.removeLink(cellName, tok);
+                    }
+                }
+
+            if (!SuperCell.getCellExpression(cellName).replace(" ", "").equals(expr.replace(" ", ""))) {
+                for (StackTraceElement s : Thread.currentThread().getStackTrace()) {
+                    if (s.getMethodName().equals("showAndWait"))
+                        return;
+                }
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initStyle(StageStyle.UNDECORATED);
+                alert.setTitle("Ошибочка...");
+                alert.setHeaderText("Кажется, вы что-то не так написали. Но я исправил!");
+                alert.setContentText(SuperCell.getCellExpression(cellName));
+
+                alert.showAndWait();
+            }
+
+//                    SuperCell.updateCells(SuperCell.getCellName(change.getRow(), change.getColumn()));
+        } catch (SuperLoopException | SuperInvalidCharacterException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initStyle(StageStyle.UNDECORATED);
+            alert.setTitle("Ошибочка...");
+            alert.setHeaderText(e.getMessage());
+
+            alert.showAndWait();
+            SuperCell.setCellExpression(cellName, oldExpr);
+            SuperCell.setItem(row, column, oldExpr);
+        }
     }
 
     private void addRowCol(int dRow, int dCol) {
@@ -566,8 +615,11 @@ public class SuperSpreadsheet extends Application {
 
                 int row = spreadSheetView.getSelectionModel().getFocusedCell().getRow();
                 int col = spreadSheetView.getSelectionModel().getFocusedCell().getColumn();
+                if (row < 0 || col < 0)
+                    return;
                 SpreadsheetCell cell = SuperCell.getRows().get(row).get(col);
                 tf.setText(SuperCell.getCellExpression(SuperCell.getCellName(row, col)));
+                cellChooser.setText(SuperCell.getCellName(row, col));
 
                 boldButt.setSelected(cell.getStyle() != null ? cell.getStyle().contains("-fx-font-weight:bold") : false);
                 italicButt.setSelected(cell.getStyle() != null ? cell.getStyle().contains("-fx-font-style:italic") : false);
