@@ -1,7 +1,42 @@
-0 0 168
-1 1 1+6
-2 2 A1*B2
-3 2 A1/2
-0 4 A1
-0 2 A1+B2
-1 2 A1-B2
+0 0 6
+-fx-background-color:rgb(256,179,128);
+0 1 
+-fx-background-color:rgb(256,179,128);
+1 0 12
+-fx-background-color:rgb(256,179,128);
+1 1 
+-fx-background-color:rgb(256,179,128);
+2 0 
+-fx-background-color:rgb(256,179,128);
+2 1 54
+-fx-background-color:rgb(256,179,128);
+2 3 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+2 4 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+3 0 
+-fx-background-color:rgb(256,179,128);
+3 1 43
+-fx-background-color:rgb(256,179,128);
+3 3 2
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+3 4 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+4 3 A1+4
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);-fx-font-style:italic;
+4 4 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+4 5 5
+-fx-font-weight:bold;
+5 3 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+5 4 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+6 3 2
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+6 4 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+7 3 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+7 4 
+-fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);

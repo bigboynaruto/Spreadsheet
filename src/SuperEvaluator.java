@@ -1,5 +1,6 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Stack;
 
 /**
@@ -14,7 +15,7 @@ public class SuperEvaluator extends SuperProcessingStrategy {
                 return OPERATOR;
 
             try {
-                SuperBigInteger b = SuperBigInteger.parse(val);
+                SuperBigInteger.parse(val);
                 return CONSTANT;
             } catch (NumberFormatException e) {}
 
@@ -27,26 +28,24 @@ public class SuperEvaluator extends SuperProcessingStrategy {
 
     public static SuperBigInteger evaluate(ArrayList<String> rpn, String cell) throws SuperLoopException {
         Stack<String> operands = new Stack<String>();
-//        System.out.println(String.join(" ", rpn.toArray(new String[rpn.size()])));
+        HashSet<String> oldLinks = SuperCell.getLinks().get(cell);
+        SuperCell.removeLinks(cell);
         while (!rpn.isEmpty()) {
             String head = rpn.remove(0);
             OperandType ot = OperandType.getType(head);
             switch (ot) {
                 case OPERATOR:
-                    // if is binary
                     operands.push(processOperator(head, operands.pop(), operands.pop()).toString());
-                    // else operands.push(processOperator(head, operands.pop());
                     break;
                 case LINK:
-                    // linkExists();
-                    // isLoop();
-                    // getCellValue();
-                    // addLink();
                     if (SuperCell.hasLink(head, cell)) {
+                        if (oldLinks != null) {
+                            for (String s : oldLinks)
+                                SuperCell.addLink(cell, s);
+                        }
                         throw new SuperLoopException(head, cell);
                     }
                     SuperCell.addLink(cell, head);
-//                    System.out.println(SuperCell.getCellValue(head));
                     operands.push(SuperCell.getCellValue(head));
                     break;
                 case CONSTANT:
