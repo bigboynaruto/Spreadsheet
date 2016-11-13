@@ -1,12 +1,12 @@
 /**
  * Created by sakura on 10/27/16.
  */
-public class SuperExpressionOperator {
-    String operator;
-    int priority;
-    boolean associative;
+class SuperExpressionOperator {
+    private String operator;
+    private int priority;
+    private boolean associative;
 
-    public SuperExpressionOperator(String operator, int priority, boolean associative) {
+    SuperExpressionOperator(String operator, int priority, boolean associative) {
         this.operator = operator;
         this.priority = priority;
         this.associative = associative;
@@ -16,15 +16,11 @@ public class SuperExpressionOperator {
         return operator;
     }
 
-    public int getPriority() {
+    int getPriority() {
         return priority;
     }
 
-    public boolean isAssociative() {
+    boolean isAssociative() {
         return associative;
-    }
-
-    public int compareTo(SuperExpressionOperator eo) {
-        return Integer.compare(priority, eo.priority);
     }
 }

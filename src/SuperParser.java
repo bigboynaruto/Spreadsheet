@@ -6,8 +6,8 @@ import java.util.Stack;
  */
 public class SuperParser extends SuperProcessingStrategy {
     public static ArrayList<String> parse(String[] tokens) {
-        Stack<String> operators = new Stack<String>();
-        ArrayList<String> res = new ArrayList<String>();
+        Stack<String> operators = new Stack<>();
+        ArrayList<String> res = new ArrayList<>();
         for (String s : tokens) {
             if (isOperator(s) && !isOpenBracket(s) && !isCloseBracket(s)) {
                 int priority = getPriority(s);
@@ -27,12 +27,10 @@ public class SuperParser extends SuperProcessingStrategy {
             } else if (isOpenBracket(s)) {
                 operators.push(s);
             }else res.add(s);
-//            System.out.println(s + "\t:\t" + String.join(" ", res.toArray(new String[res.size()])));
         }
 
         while (!operators.empty())
             res.add(operators.pop());
-//        System.out.println(String.join(" ", res.toArray(new String[res.size()])));
 
         return res;
     }

@@ -4,14 +4,14 @@ import java.util.Stack;
 /**
  * Created by sakura on 10/27/16.
  */
-public class SuperLexer extends SuperProcessingStrategy {
-    public static String[] tokenize(String expr) throws SuperInvalidCharacterException {
+class SuperLexer extends SuperProcessingStrategy {
+    static String[] tokenize(String expr) throws SuperInvalidCharacterException {
         expr = expr.trim();
         if (expr.equals(""))
             return new String[]{"0"};
         expr += " ";
-        ArrayList<String> tokens = new ArrayList<String>();
-        Stack<String> brackets = new Stack<String>();
+        ArrayList<String> tokens = new ArrayList<>();
+        Stack<String> brackets = new Stack<>();
         String /*fixedExpr = "", */currToken = "";
         boolean lastIsOperator = true;
         int len = expr.length(), i = 0;

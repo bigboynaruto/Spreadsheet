@@ -4,19 +4,17 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.function.Consumer;
 
 /**
  * Created by sakura on 10/27/16.
  */
-public abstract class SuperProcessingStrategy {
+abstract class SuperProcessingStrategy {
     private static final String FILE_NAME = "data/operators.txt";
     private static HashSet<SuperExpressionOperator> operators = null;
     static {
-        operators = new HashSet<SuperExpressionOperator>();
+        operators = new HashSet<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
             String line;
@@ -31,9 +29,9 @@ public abstract class SuperProcessingStrategy {
             System.out.println("Something wrong with IO. Terminating...");
             Platform.exit();
         }
-    };
+    }
 
-    protected static int getPriority(String val) {
+    static int getPriority(String val) {
         for (SuperExpressionOperator op : operators) {
             if (op.toString().equals(val)) return op.getPriority();
         }
@@ -41,7 +39,7 @@ public abstract class SuperProcessingStrategy {
         return 100;
     }
 
-    protected static SuperExpressionOperator getOperator(String val) {
+    static SuperExpressionOperator getOperator(String val) {
         for (SuperExpressionOperator op : operators) {
             if (op.toString().equals(val))
                 return op;
@@ -50,7 +48,7 @@ public abstract class SuperProcessingStrategy {
         return null;
     }
 
-    protected static boolean isOperator(String val) {
+    static boolean isOperator(String val) {
         for (SuperExpressionOperator op : operators) {
             if (op.toString().equals(val)) return true;
         }
@@ -58,27 +56,15 @@ public abstract class SuperProcessingStrategy {
         return false;
     }
 
-    protected static String[] getOperatorStrings() {
-        final ArrayList<String> operatorStrings = new ArrayList<String>();
-        operators.forEach(new Consumer<SuperExpressionOperator>() {
-            @Override
-            public void accept(SuperExpressionOperator op) {
-                operatorStrings.add(op.toString());
-            }
-        });
-
-        return (String[])operatorStrings.toArray();
-    }
-
-    protected static boolean isOpenBracket(String val) {
+    static boolean isOpenBracket(String val) {
         return val.equals("(") || val.equals("[") || val.equals("{");
     }
 
-    protected static boolean isCloseBracket(String val) {
+    static boolean isCloseBracket(String val) {
         return val.equals(")") || val.equals("]") || val.equals("}");
     }
 
-    protected static String getReverseBracket(String val) {
+    static String getReverseBracket(String val) {
         switch (val) {
             case "(": return ")";
             case "[": return "]";
@@ -90,7 +76,7 @@ public abstract class SuperProcessingStrategy {
         }
     }
 
-    protected static boolean isValidIdentifierCharacter(char c) {
+    static boolean isValidIdentifierCharacter(char c) {
         return !Arrays.asList("+-/*%^&|<=>!({[)}] ".split("")).contains("" + c)/*c != '+' && c != '-' && c != '/' && c != '*'
                 && c != '%' && c != '^' && c != '&' && c != '|'
                 && c != '<' && c != '=' && c != '>' && c != '!'
@@ -98,7 +84,7 @@ public abstract class SuperProcessingStrategy {
                 && c != '}' && c != ']' && c != ' '*/;
     }
 
-    protected static boolean isValidCharacter(char c) {
+    static boolean isValidCharacter(char c) {
         return !Arrays.asList("\\#$@:;\"'_`~?,.".split("")).contains("" + c);
     }
 }

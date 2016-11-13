@@ -3,10 +3,10 @@ import java.math.BigInteger;
 /**
  * Created by sakura on 10/28/16.
  */
-public class SuperBigInteger extends BigInteger {
-    public static final SuperBigInteger PINF = new SuperBigInteger("1");
-    public static final SuperBigInteger NINF = new SuperBigInteger("-1");
-    public static final SuperBigInteger NAN = new SuperBigInteger("0");
+class SuperBigInteger extends BigInteger {
+    static final SuperBigInteger PINF = new SuperBigInteger("1");
+    static final SuperBigInteger NINF = new SuperBigInteger("-1");
+    static final SuperBigInteger NAN = new SuperBigInteger("0");
 
     public SuperBigInteger(String val) {
         super(val);
@@ -56,10 +56,8 @@ public class SuperBigInteger extends BigInteger {
     }
 
     public boolean sign() {
-        if (isNaN() || this == PINF || compareTo(BigInteger.valueOf(0)) >= 0)
-            return false;
+        return !(isNaN() || this == PINF || compareTo(BigInteger.valueOf(0)) >= 0);
 
-        return true;
     }
 
     public SuperBigInteger getSignedInf(boolean b) {
@@ -219,9 +217,7 @@ public class SuperBigInteger extends BigInteger {
     }
 
     public boolean isGreater(SuperBigInteger n) {
-        /*if (isNaN() || n.isNaN())
-            return false;*/
-        return compareTo(n) > 0;
+        return !(isNaN() || n.isNaN()) && compareTo(n) > 0;
     }
 
     public boolean isGreaterEq(SuperBigInteger n) {
@@ -229,9 +225,7 @@ public class SuperBigInteger extends BigInteger {
     }
 
     public boolean isSmaller(SuperBigInteger n) {
-        /*if (isNaN() || n.isNaN())
-            return false;*/
-        return compareTo(n) < 0;
+        return !(isNaN() || n.isNaN()) && compareTo(n) < 0;
     }
 
     public boolean isSmallerEq(SuperBigInteger n) {
