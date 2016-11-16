@@ -1,42 +1,60 @@
-0 0 6
--fx-background-color:rgb(256,179,128);
-0 1 
--fx-background-color:rgb(256,179,128);
-1 0 12
--fx-background-color:rgb(256,179,128);
-1 1 
--fx-background-color:rgb(256,179,128);
-2 0 
--fx-background-color:rgb(256,179,128);
-2 1 54
--fx-background-color:rgb(256,179,128);
+0 0 1
+none
+0 1 A1
+none
+1 0 2
+none
+1 1 A2
+none
+2 0 4
+-fx-background-color:rgb(204,153,204);-fx-text-fill:rgb(256,256,102);
+2 1 13
+none
+2 2 
+-fx-font-size:66 ex;
 2 3 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-2 4 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-3 0 
--fx-background-color:rgb(256,179,128);
-3 1 43
--fx-background-color:rgb(256,179,128);
-3 3 2
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-3 4 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-4 3 A1+4
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);-fx-font-style:italic;
-4 4 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-4 5 5
--fx-font-weight:bold;
+-fx-font-size:66 ex;-fx-background-color:rgb(256,153,128);
+3 0 5
+-fx-background-color:rgb(204,153,204);-fx-text-fill:rgb(256,256,102);
+3 1 
+-fx-background-color:rgb(204,153,204);-fx-text-fill:rgb(256,256,102);-fx-font-size:60 ex;
+3 2 
+-fx-font-size:66 ex;
+3 3 
+-fx-font-size:66 ex;
+4 0 6
+-fx-background-color:rgb(204,153,204);-fx-text-fill:rgb(256,256,102);
+4 1 
+-fx-background-color:rgb(204,153,204);-fx-text-fill:rgb(256,256,102);-fx-font-size:60 ex;
+4 2 
+-fx-font-size:66 ex;
+4 3 
+-fx-font-size:66 ex;-fx-font-weight:bold;
+5 0 7
+-fx-background-color:rgb(204,153,204);-fx-text-fill:rgb(256,256,102);
+5 1 
+-fx-background-color:rgb(204,153,204);-fx-text-fill:rgb(256,256,102);-fx-font-size:60 ex;
+5 2 
+-fx-font-size:66 ex;
 5 3 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-5 4 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-6 3 2
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-6 4 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-7 3 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
-7 4 
--fx-text-fill:rgb(128,77,128);-fx-background-color:rgb(256,256,102);
+-fx-font-size:66 ex;
+6 0 8
+none
+6 1 
+-fx-font-size:66 ex;
+6 2 
+-fx-font-size:66 ex;
+6 3 
+-fx-font-size:66 ex;
+7 0 9
+none
+7 1 
+-fx-font-size:66 ex;
+7 2 
+-fx-font-size:66 ex;
+7 3 12
+-fx-font-size:22 ex;
+8 0 0
+none
+8 1 A9
+none

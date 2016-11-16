@@ -30,6 +30,7 @@ public class SuperSpreadsheet extends Application {
     private TextField tf, cellChooser;
     private ToggleButton boldButt, italicButt, underButt;
     private Button clearButt;
+    private ComboBox<String> fontChooser;
 
     public static void main(String[] args) {
         launch(args);
@@ -63,11 +64,16 @@ public class SuperSpreadsheet extends Application {
         addr.setOnMouseClicked( mouseEvent -> SuperCell.addRowCol(spreadSheetView, 1, 0));
         addc.setOnMouseClicked(mouseEvent -> SuperCell.addRowCol(spreadSheetView, 0, 1));
 
-        final SuperFontChooser fontChooser = new SuperFontChooser();
-        fontChooser.setOnAction(handler -> spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
-            SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
-            setStyleProperty(cell.styleProperty(), "-fx-font-size", fontChooser.getValue() + " ex");
-        }));
+        fontChooser = new SuperComboBoxBuilder<String>()
+                .setTooltip("Font size")
+                .setStyle("-fx-background-color: null;")
+                .setValues(("6 7 8 9 10 10.5 11 12 13 14 15 16 18 20 22 24 " +
+                        "26 28 32 36 40 44 48 54 60 66 72 80 88 96").split(" "))
+                .setValue("13")
+                .setOnAction(handler -> spreadSheetView.getSelectionModel().getSelectedCells().forEach(pos -> {
+                    SpreadsheetCell cell = SuperCell.getRows().get(pos.getRow()).get(pos.getColumn());
+                    setStyleProperty(cell.styleProperty(), "-fx-font-size", ((ComboBox)handler.getSource()).getValue() + " ex");
+                })).getInstance();
 
         boldButt = new ToggleButton("B");
         boldButt.setSelected(false);
@@ -331,6 +337,15 @@ public class SuperSpreadsheet extends Application {
         style.setValue(str);
     }
 
+    private static String getStyleProperty(String style, String property) {
+        int index = style.indexOf(property);
+        if (index == -1) return null;
+
+        index += property.length() + 1;
+
+        return style.substring(index, style.indexOf(";", index));
+    }
+
     private static void setCellValue(SpreadsheetCell cell, String expr) {
         if (expr == null)
             expr = "";
@@ -403,6 +418,10 @@ public class SuperSpreadsheet extends Application {
             boldButt.setSelected(cell.getStyle() != null && cell.getStyle().contains("-fx-font-weight:bold"));
             italicButt.setSelected(cell.getStyle() != null && cell.getStyle().contains("-fx-font-style:italic"));
             underButt.setSelected(cell.getStyle() != null && cell.getStyle().contains("-fx-underline:true"));
+
+            String fontSize = getStyleProperty(cell.getStyle() == null ? "" : cell.getStyle(), "-fx-font-size");
+            fontSize = fontSize == null ? "13" : fontSize.substring(0, fontSize.indexOf(" "));
+            fontChooser.setValue(fontSize);
         });
         spreadSheetView.addEventHandler(KeyEvent.KEY_PRESSED, keyEvent -> {
             if (new KeyCodeCombination(KeyCode.B, KeyCombination.CONTROL_DOWN).match(keyEvent))
