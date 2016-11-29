@@ -48,9 +48,7 @@ public class SuperSpreadsheet extends Application {
         tf = new TextField("Добро пожаловать");
 
         Button addr = new Button("Add row");
-        addr.setStyle("-fx-background-color: null;");
         Button addc = new Button("Add col");
-        addc.setStyle("-fx-background-color: null;");
         tf.setOnAction(keyEvent -> {
             int row = spreadSheetView.getSelectionModel().getFocusedCell().getRow();
             int column = spreadSheetView.getSelectionModel().getFocusedCell().getColumn();
@@ -66,7 +64,6 @@ public class SuperSpreadsheet extends Application {
 
         fontChooser = new SuperComboBoxBuilder<String>()
                 .setTooltip("Font size")
-                .setStyle("-fx-background-color: null;")
                 .setValues(("6 7 8 9 10 10.5 11 12 13 14 15 16 18 20 22 24 " +
                         "26 28 32 36 40 44 48 54 60 66 72 80 88 96").split(" "))
                 .setValue("13")
@@ -255,7 +252,6 @@ public class SuperSpreadsheet extends Application {
 
         MenuItem cutItem = new MenuItem("Вырезать");
         MenuItem pasteItem = new MenuItem("Вставить вырезанное");
-//        MenuItem bgItem = new MenuItem("Закраска");
 
         cutItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN));
         pasteItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCodeCombination.SHIFT_DOWN));
@@ -311,7 +307,7 @@ public class SuperSpreadsheet extends Application {
     private ColorPicker createColorPicker(final String property, Color defaultColor) {
         final ColorPicker colpicker = new ColorPicker(defaultColor);
         colpicker.setTooltip(new Tooltip(property.replace("-fx-", "")));
-        colpicker.setStyle("-fx-color-label-visible: false;-fx-background-color: null;");
+        colpicker.setStyle("-fx-color-label-visible: false;");
 
         colpicker.setOnAction(actionEvent -> {
             Color color = colpicker.getValue();

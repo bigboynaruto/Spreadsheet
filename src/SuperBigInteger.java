@@ -151,6 +151,30 @@ class SuperBigInteger extends BigInteger {
         return new SuperBigInteger(super.mod(n));
     }
 
+    public SuperBigInteger and(SuperBigInteger n) {
+        boolean b1 = isFinite() || isNaN();
+        boolean b2 = n.isFinite() || n.isNaN();
+
+        if (b1 && b2)
+            return new SuperBigInteger(0);
+        if (b1) return n;
+        if (b2) return this;
+
+        return new SuperBigInteger(super.and(n));
+    }
+
+    public SuperBigInteger or(SuperBigInteger n) {
+        boolean b1 = isFinite() || isNaN();
+        boolean b2 = n.isFinite() || n.isNaN();
+
+        if (b1 && b2)
+            return new SuperBigInteger(0);
+        if (b1) return n;
+        if (b2) return this;
+
+        return new SuperBigInteger(super.or(n));
+    }
+
     public SuperBigInteger pow(SuperBigInteger n) {
         if (this.isNaN() || n.isNaN())
             return NAN;

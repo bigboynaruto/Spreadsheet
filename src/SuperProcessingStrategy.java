@@ -1,9 +1,3 @@
-import javafx.application.Platform;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -16,19 +10,36 @@ abstract class SuperProcessingStrategy {
     static {
         operators = new HashSet<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] tokens = line.split(" ");
-                operators.add(new SuperExpressionOperator(tokens[0], Integer.parseInt(tokens[1]), tokens[2].equals("1")));
-            }
-        } catch (FileNotFoundException e) {
-            System.err.println("Couldn't load file " + FILE_NAME + ". Terminating...");
-            Platform.exit();
-        } catch (IOException e) {
-            System.out.println("Something wrong with IO. Terminating...");
-            Platform.exit();
-        }
+        operators.add(new SuperExpressionOperator("+", 7, true, (a, b) -> a.add(b)));
+        operators.add(new SuperExpressionOperator("-", 7, true, (a, b) -> a.substract(b)));
+        operators.add(new SuperExpressionOperator("/", 8, true, (a, b) -> a.divide(b)));
+        operators.add(new SuperExpressionOperator("*", 8, true, (a, b) -> a.multiply(b)));
+        operators.add(new SuperExpressionOperator("%", 8, true, (a, b) -> a.mod(b)));
+        operators.add(new SuperExpressionOperator("^", 9, false, (a, b) -> a.pow(b)));
+        operators.add(new SuperExpressionOperator("&", 4, true, (a, b) -> a.and(b)));
+        operators.add(new SuperExpressionOperator("|", 3, true, (a, b) -> a.or(b)));
+        operators.add(new SuperExpressionOperator("<", 6, true,
+                (a, b) -> new SuperBigInteger(a.isSmaller(b) ? 1 : 0)));
+        operators.add(new SuperExpressionOperator("<=", 6, true,
+                (a, b) -> new SuperBigInteger(a.isSmallerEq(b) ? 1 : 0)));
+        operators.add(new SuperExpressionOperator(">", 6, true,
+                (a, b) -> new SuperBigInteger(a.isGreater(b) ? 1 : 0)));
+        operators.add(new SuperExpressionOperator(">=", 6, true,
+                (a, b) -> new SuperBigInteger(a.isGreaterEq(b) ? 1 : 0)));
+        operators.add(new SuperExpressionOperator("=", 5, true,
+                (a, b) -> new SuperBigInteger(a.equals(b) ? 1 : 0)));
+        operators.add(new SuperExpressionOperator("!=", 5, true,
+                (a, b) -> new SuperBigInteger(!a.equals(b) ? 1 : 0)));
+        operators.add(new SuperExpressionOperator("<>", 5, true,
+                (a, b) -> new SuperBigInteger(!a.equals(b) ? 1 : 0)));
+        operators.add(new SuperExpressionOperator("(", -2, false, null));
+        operators.add(new SuperExpressionOperator("[", -2, false, null));
+        operators.add(new SuperExpressionOperator("{", -2, false, null));
+        operators.add(new SuperExpressionOperator(")", -2, false, null));
+        operators.add(new SuperExpressionOperator("]", -2, false, null));
+        operators.add(new SuperExpressionOperator("}", -2, false, null));
+        operators.add(new SuperExpressionOperator(">>", 6, true, (a, b) -> a.shiftRight(b)));
+        operators.add(new SuperExpressionOperator("<<", 6, true, (a, b) -> a.shiftLeft(b)));
     }
 
     static int getPriority(String val) {

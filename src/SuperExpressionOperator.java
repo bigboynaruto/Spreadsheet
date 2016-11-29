@@ -5,22 +5,34 @@ class SuperExpressionOperator {
     private String operator;
     private int priority;
     private boolean associative;
+    SuperBinaryFunction<SuperBigInteger> func;
 
-    SuperExpressionOperator(String operator, int priority, boolean associative) {
+    public SuperExpressionOperator(String operator, int priority, boolean associative, SuperBinaryFunction<SuperBigInteger> func) {
         this.operator = operator;
         this.priority = priority;
         this.associative = associative;
+        this.func = func;
     }
+
+    /*public SuperExpressionOperator(String operator, int priority, boolean associative) {
+        this.operator = operator;
+        this.priority = priority;
+        this.associative = associative;
+    }*/
 
     public String toString() {
         return operator;
     }
 
-    int getPriority() {
+    public int getPriority() {
         return priority;
     }
 
-    boolean isAssociative() {
+    public boolean isAssociative() {
         return associative;
+    }
+
+    public SuperBigInteger apply(SuperBigInteger arg1, SuperBigInteger arg2) {
+        return func.call(arg1, arg2);
     }
 }

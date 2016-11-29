@@ -35,7 +35,9 @@ public class SuperEvaluator extends SuperProcessingStrategy {
             OperandType ot = OperandType.getType(head);
             switch (ot) {
                 case OPERATOR:
-                    operands.push(processOperator(head, operands.pop(), operands.pop()).toString());
+                    operands.push(processOperator(getOperator(head),
+                            SuperBigInteger.tryParse(operands.pop()),
+                            SuperBigInteger.tryParse(operands.pop())).toString());
                     break;
                 case LINK:
                     if (SuperCell.hasLink(head, cell)) {
@@ -60,33 +62,29 @@ public class SuperEvaluator extends SuperProcessingStrategy {
         return SuperBigInteger.tryParse(operands.empty() ? "0" : operands.pop());
     }
 
-    private static BigInteger processOperator(String o, String strO2, String strO1) {
-        o.trim();
-        SuperBigInteger o1 = SuperBigInteger.tryParse(strO1), o2 = SuperBigInteger.tryParse(strO2);
+    private static BigInteger processOperator(SuperExpressionOperator operator, SuperBigInteger o2, SuperBigInteger o1) {
+        if (operator == null)
+            return SuperBigInteger.NAN;
+
+        return operator.apply(o1, o2);
+        /*o.trim();
         switch (o) {
             case "+":
             case "add":
                 return o1.add(o2);
             case "-":
-            case "sub":
                 return o1.substract(o2);
             case "*":
-            case "mul":
                 return o1.multiply(o2);
             case "/":
-            case "div":
                 return o1.divide(o2);
             case "%":
-            case "mod":
                 return o1.mod(o2);
             case "^":
-            case "pow":
                 return o1.pow(o2);
             case "&":
-            case "and":
                 return o1.and(o2);
             case "|":
-            case "or":
                 return o1.or(o2);
             case ">":
                 return new SuperBigInteger(o1.isGreater(o2) ? 1 : 0);
@@ -97,20 +95,17 @@ public class SuperEvaluator extends SuperProcessingStrategy {
             case "<=":
                 return new SuperBigInteger(o1.isSmallerEq(o2) ? 1 : 0);
             case "=":
-            case "eqv":
                 return new SuperBigInteger(o1.equals(o2) ? 1 : 0);
             case "!=":
             case "<>":
-            case "neq":
                 return new SuperBigInteger(!o1.equals(o2) ? 1 : 0);
             case ">>":
-            case "shr":
                 return o1.shiftRight(o2);
             case "<<":
-            case "shl":
                 return o1.shiftLeft(o2);
             default:
                 return SuperBigInteger.NAN;
         }
+                */
     }
 }
