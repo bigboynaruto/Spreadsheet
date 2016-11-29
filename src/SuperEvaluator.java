@@ -67,45 +67,5 @@ public class SuperEvaluator extends SuperProcessingStrategy {
             return SuperBigInteger.NAN;
 
         return operator.apply(o1, o2);
-        /*o.trim();
-        switch (o) {
-            case "+":
-            case "add":
-                return o1.add(o2);
-            case "-":
-                return o1.substract(o2);
-            case "*":
-                return o1.multiply(o2);
-            case "/":
-                return o1.divide(o2);
-            case "%":
-                return o1.mod(o2);
-            case "^":
-                return o1.pow(o2);
-            case "&":
-                return o1.and(o2);
-            case "|":
-                return o1.or(o2);
-            case ">":
-                return new SuperBigInteger(o1.isGreater(o2) ? 1 : 0);
-            case ">=":
-                return new SuperBigInteger(o1.isGreaterEq(o2) ? 1 : 0);
-            case "<":
-                return new SuperBigInteger(o1.isSmaller(o2) ? 1 : 0);
-            case "<=":
-                return new SuperBigInteger(o1.isSmallerEq(o2) ? 1 : 0);
-            case "=":
-                return new SuperBigInteger(o1.equals(o2) ? 1 : 0);
-            case "!=":
-            case "<>":
-                return new SuperBigInteger(!o1.equals(o2) ? 1 : 0);
-            case ">>":
-                return o1.shiftRight(o2);
-            case "<<":
-                return o1.shiftLeft(o2);
-            default:
-                return SuperBigInteger.NAN;
-        }
-                */
     }
 }
