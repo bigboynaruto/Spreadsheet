@@ -14,12 +14,6 @@ class SuperExpressionOperator {
         this.func = func;
     }
 
-    /*public SuperExpressionOperator(String operator, int priority, boolean associative) {
-        this.operator = operator;
-        this.priority = priority;
-        this.associative = associative;
-    }*/
-
     public String toString() {
         return operator;
     }
