@@ -50,6 +50,10 @@ abstract class SuperProcessingStrategy {
         return 100;
     }
 
+    static SuperExpressionOperator[] getOperators() {
+        return operators.toArray(new SuperExpressionOperator[operators.size()]);
+    }
+
     static SuperExpressionOperator getOperator(String val) {
         for (SuperExpressionOperator op : operators) {
             if (op.toString().equals(val))
@@ -88,11 +92,7 @@ abstract class SuperProcessingStrategy {
     }
 
     static boolean isValidIdentifierCharacter(char c) {
-        return !Arrays.asList("+-/*%^&|<=>!({[)}] ".split("")).contains("" + c)/*c != '+' && c != '-' && c != '/' && c != '*'
-                && c != '%' && c != '^' && c != '&' && c != '|'
-                && c != '<' && c != '=' && c != '>' && c != '!'
-                && c != '(' && c != '{' && c != '[' && c != ')'
-                && c != '}' && c != ']' && c != ' '*/;
+        return !Arrays.asList("+-/*%^&|<=>!({[)}] ".split("")).contains("" + c);
     }
 
     static boolean isValidCharacter(char c) {

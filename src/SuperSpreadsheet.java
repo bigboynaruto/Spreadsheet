@@ -296,7 +296,24 @@ public class SuperSpreadsheet extends Application {
 
         menuEdit.getItems().addAll(cutItem, pasteItem);
 
-        menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
+        Menu menuHelp = new Menu("Помощь");
+        MenuItem aboutItem = new MenuItem("Справка");
+        menuHelp.getItems().add(aboutItem);
+        menuHelp.setOnAction((actionEvent) -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initStyle(StageStyle.UNDECORATED);
+            alert.setHeaderText("Операторы");
+
+            String operators = "";
+            for (SuperExpressionOperator operator : SuperProcessingStrategy.getOperators()) {
+                operators += operator.toString() + "\n";
+            }
+            alert.setContentText(operators);
+
+            alert.showAndWait();
+        });
+
+        menuBar.getMenus().addAll(menuFile, menuEdit, menuView, menuHelp);
 
         return menuBar;
     }
