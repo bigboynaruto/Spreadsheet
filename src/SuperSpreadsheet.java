@@ -16,16 +16,19 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.controlsfx.control.spreadsheet.*;
 
-import java.util.Optional;
+import java.io.File;
 
 /**
  * Created by sakura on 10/26/16.
  */
 public class SuperSpreadsheet extends Application {
+    private final String EXTENSION = "dno";
+
     private SpreadsheetView spreadSheetView;
     private TextField tf, cellChooser;
     private ToggleButton boldButt, italicButt, underButt;
@@ -156,13 +159,13 @@ public class SuperSpreadsheet extends Application {
                 spreadSheetView.setPrefHeight(number2.doubleValue())
         );
 
-        ((VBox) scene.getRoot()).getChildren().addAll(createMenuBar(), getPanel());
+        ((VBox) scene.getRoot()).getChildren().addAll(createMenuBar(primaryStage), getPanel());
 
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    private MenuBar createMenuBar() {
+    private MenuBar createMenuBar(Stage primaryStage) {
         MenuBar menuBar = new MenuBar();
 
         Menu menuFile = new Menu("Файл");
@@ -177,46 +180,40 @@ public class SuperSpreadsheet extends Application {
         openItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
         exitItem.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
         saveItem.setOnAction(actionEvent -> {
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.initStyle(StageStyle.UNDECORATED);
-            dialog.setContentText("Введите название файла");
-            dialog.setHeaderText("Сохранить");
-            Optional<String> res = dialog.showAndWait();
-            if (res.isPresent()) {
-                try {
-                    SuperCell.writeToFile(res.get());
-                } catch (Exception e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.setHeaderText(e.getMessage());
+            File file = chooseFile(primaryStage);
+            if (file == null)
+                return;
 
-                    alert.showAndWait();
-                }
+            try {
+                SuperCell.writeToFile(file.getName());
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initStyle(StageStyle.UNDECORATED);
+                alert.setHeaderText(e.getMessage());
+
+                alert.showAndWait();
             }
         });
         openItem.setOnAction(actionEvent -> {
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.initStyle(StageStyle.UNDECORATED);
-            dialog.setContentText("Введите название файла");
-            dialog.setHeaderText("Открыть");
-            Optional<String> res = dialog.showAndWait();
-            if (res.isPresent()) {
-                try {
-                    SuperCell.readFromFile(spreadSheetView, res.get());
-                } catch (Exception e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.setHeaderText(e.getMessage());
+            File file = chooseFile(primaryStage);
 
-                    alert.showAndWait();
-                }
+            if (file == null)
+                return;
+
+            try {
+                SuperCell.readFromFile(spreadSheetView, file.getName());
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initStyle(StageStyle.UNDECORATED);
+                alert.setHeaderText(e.getMessage());
+
+                alert.showAndWait();
             }
         });
         exitItem.setOnAction(actionEvent -> {
             if (!SuperCell.isSaved()) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.initStyle(StageStyle.UNDECORATED);
-                alert.setTitle("Помощник <имя> на страже вашей безопасности!");
                 alert.setHeaderText("Ой, а вы не сохранили свой файлик... Точно хотите выйти?");
                 alert.setContentText("Подумайте дважды, перед тем, как соглашаться!");
 
@@ -302,6 +299,18 @@ public class SuperSpreadsheet extends Application {
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
 
         return menuBar;
+    }
+
+    private File chooseFile(Stage primaryStage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Anime filechooser");
+
+        FileChooser.ExtensionFilter extFilter =
+                new FileChooser.ExtensionFilter(EXTENSION.toUpperCase() + " files (*."
+                        + EXTENSION + ")", "*." + EXTENSION);
+        fileChooser.getExtensionFilters().add(extFilter);
+
+        return fileChooser.showOpenDialog(primaryStage);
     }
 
     private ColorPicker createColorPicker(final String property, Color defaultColor) {
