@@ -29,6 +29,7 @@ import java.io.File;
 public class SuperSpreadsheet extends Application {
     private final String EXTENSION = "sad";
 
+    private Stage stage;
     private SpreadsheetView spreadSheetView;
     private TextField tf, cellChooser;
     private ToggleButton boldButt, italicButt, underButt;
@@ -148,7 +149,8 @@ public class SuperSpreadsheet extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Anime Spreadsheet");
+        this.stage = primaryStage;
+        stage.setTitle("Anime Spreadsheet");
 
         final Scene scene = new Scene(new VBox(), 1000, 600);
 
@@ -159,12 +161,13 @@ public class SuperSpreadsheet extends Application {
                 spreadSheetView.setPrefHeight(number2.doubleValue())
         );
 
-        ((VBox) scene.getRoot()).getChildren().addAll(createMenuBar(primaryStage), getPanel());
+        ((VBox) scene.getRoot()).getChildren().addAll(createMenuBar(), getPanel());
 
-        primaryStage.setScene(scene);
-        primaryStage.setOnCloseRequest(we -> {
+        stage.setScene(scene);
+        stage.setOnCloseRequest(we -> {
             if (!SuperCell.isSaved()) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.initOwner(stage);
                 alert.initStyle(StageStyle.UNDECORATED);
                 alert.setHeaderText("Ой, а вы не сохранили свой файлик... Точно хотите выйти?");
                 alert.setContentText("Подумайте дважды, перед тем, как соглашаться!");
@@ -180,10 +183,10 @@ public class SuperSpreadsheet extends Application {
             if (we != null)
                 we.consume();
         });
-        primaryStage.show();
+        stage.show();
     }
 
-    private MenuBar createMenuBar(Stage primaryStage) {
+    private MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
 
         Menu menuFile = new Menu("Файл");
@@ -198,7 +201,7 @@ public class SuperSpreadsheet extends Application {
         openItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
         exitItem.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
         saveItem.setOnAction(actionEvent -> {
-            File file = chooseFile(primaryStage);
+            File file = chooseFile();
             if (file == null)
                 return;
 
@@ -206,6 +209,7 @@ public class SuperSpreadsheet extends Application {
                 SuperCell.writeToFile(file.getName() + "." + EXTENSION);
             } catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(stage);
                 alert.initStyle(StageStyle.UNDECORATED);
                 alert.setHeaderText("Ой...");
                 alert.setContentText(e.getMessage());
@@ -214,7 +218,7 @@ public class SuperSpreadsheet extends Application {
             }
         });
         openItem.setOnAction(actionEvent -> {
-            File file = chooseFile(primaryStage);
+            File file = chooseFile();
 
             if (file == null)
                 return;
@@ -223,6 +227,7 @@ public class SuperSpreadsheet extends Application {
                 SuperCell.readFromFile(spreadSheetView, file.getName());
             } catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(stage);
                 alert.initStyle(StageStyle.UNDECORATED);
                 alert.setHeaderText("Ой...");
                 alert.setContentText(e.getMessage());
@@ -231,20 +236,7 @@ public class SuperSpreadsheet extends Application {
             }
         });
         exitItem.setOnAction(actionEvent -> {
-            primaryStage.getOnCloseRequest().handle(null);
-            /*if (!SuperCell.isSaved()) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.setHeaderText("Ой, а вы не сохранили свой файлик... Точно хотите выйти?");
-                alert.setContentText("Подумайте дважды, перед тем, как соглашаться!");
-
-                alert.showAndWait();
-
-                if (alert.getResult().equals(ButtonType.OK)) {
-                    Platform.exit();
-                }
-            }
-            else Platform.exit();*/
+            stage.getOnCloseRequest().handle(null);
         });
         menuFile.getItems().addAll(openItem, saveItem, new SeparatorMenuItem(), exitItem);
 
@@ -277,6 +269,7 @@ public class SuperSpreadsheet extends Application {
         cutItem.setOnAction(actionEvent -> {
             if (spreadSheetView.getSelectionModel().getSelectedCells().size() < 1) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(stage);
                 alert.initStyle(StageStyle.UNDECORATED);
                 alert.setTitle("Ошибочка...");
                 alert.setHeaderText("Выделите сначала ячейку...");
@@ -291,6 +284,7 @@ public class SuperSpreadsheet extends Application {
         pasteItem.setOnAction(actionEvent -> {
             if (spreadSheetView.getSelectionModel().getSelectedCells().size() < 1) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(stage);
                 alert.initStyle(StageStyle.UNDECORATED);
                 alert.setTitle("Ошибочка...");
                 alert.setHeaderText("Выделите сначала ячейку...");
@@ -305,6 +299,7 @@ public class SuperSpreadsheet extends Application {
                 SuperCell.pasteCell(row, col);
             } catch (SuperCellNotSelectedException | SuperLoopException | SuperInvalidCharacterException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(stage);
                 alert.initStyle(StageStyle.UNDECORATED);
                 alert.setTitle("Ошибочка...");
                 alert.setHeaderText(e.getMessage());
@@ -322,6 +317,7 @@ public class SuperSpreadsheet extends Application {
         menuHelp.getItems().add(aboutItem);
         menuHelp.setOnAction((actionEvent) -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initOwner(stage);
             alert.initStyle(StageStyle.UNDECORATED);
             alert.setHeaderText("Операторы");
 
@@ -339,7 +335,7 @@ public class SuperSpreadsheet extends Application {
         return menuBar;
     }
 
-    private File chooseFile(Stage primaryStage) {
+    private File chooseFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Anime filechooser");
 
@@ -348,7 +344,7 @@ public class SuperSpreadsheet extends Application {
                         + EXTENSION + ")", "*." + EXTENSION);
         fileChooser.getExtensionFilters().add(extFilter);
 
-        return fileChooser.showOpenDialog(primaryStage);
+        return fileChooser.showOpenDialog(stage);
     }
 
     private ColorPicker createColorPicker(final String property, Color defaultColor) {
@@ -389,7 +385,7 @@ public class SuperSpreadsheet extends Application {
         return style.substring(index, style.indexOf(";", index));
     }
 
-    private static void setCellValue(SpreadsheetCell cell, String expr) {
+    private void setCellValue(SpreadsheetCell cell, String expr) {
         if (expr == null)
             expr = "";
         int row = cell.getRow(), column = cell.getColumn();
@@ -404,6 +400,7 @@ public class SuperSpreadsheet extends Application {
                         return;
                 }
                 Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(stage);
                 alert.initStyle(StageStyle.UNDECORATED);
                 alert.setTitle("Ошибочка...");
                 alert.setHeaderText("Кажется, вы что-то не так написали. Но я исправил!");
@@ -413,6 +410,7 @@ public class SuperSpreadsheet extends Application {
             }
         } catch (SuperLoopException | SuperInvalidCharacterException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.initOwner(stage);
             alert.initStyle(StageStyle.UNDECORATED);
             alert.setTitle("Ошибочка...");
             alert.setHeaderText(e.getMessage());
