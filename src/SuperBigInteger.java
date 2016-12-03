@@ -211,6 +211,20 @@ class SuperBigInteger extends BigInteger {
             return sign() ? NAN : PINF;
         }
 
+        if (equals(0) && n.equals(0))
+            return NAN;
+
+        if (n.sign()) {
+            if (equals(0))
+                return PINF;
+            else if (equals(1))
+                return new SuperBigInteger(1);
+            else return new SuperBigInteger(0);
+        }
+
+        if (n.sign())
+            return new SuperBigInteger("1").divide(pow(n.negate()));
+
         return new SuperBigInteger(super.pow(n.intValue()));
     }
 
