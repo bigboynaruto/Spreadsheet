@@ -1,7 +1,5 @@
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
-import javafx.stage.StageStyle;
 import org.controlsfx.control.spreadsheet.Grid;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
@@ -17,11 +15,11 @@ import java.util.HashSet;
  * Created by sakura on 10/30/16.
  */
 public class SuperCell {
-    private static HashMap<String, HashSet<String>> links = new HashMap<>();
+    private static HashMap<String, HashSet<String>> refs = new HashMap<>();
     private static ArrayList<ObservableList<SpreadsheetCell>> rows = new ArrayList<>();
     private static HashMap<String, String> expressions = new HashMap<>();
 
-    private static boolean saved = false;
+    private static boolean saved = true;
     private static String movingExpr = null;
 
     static void addRow(ObservableList<SpreadsheetCell> data) {
@@ -33,7 +31,7 @@ public class SuperCell {
         if (expressions.containsKey(cell))
             expressions.remove(cell);
 
-        removeLinks(cell);
+        removeRefs(cell);
 
         setItem(getCellRow(cell), getCellColumn(cell), "");
     }
@@ -78,12 +76,12 @@ public class SuperCell {
         return rows;
     }
 
-    static HashMap<String, HashSet<String>> getLinks() {
-        return links;
+    static HashMap<String, HashSet<String>> getRefs() {
+        return refs;
     }
 
-    private static void setLinks(HashMap<String, HashSet<String>> newLinks) {
-        links = newLinks;
+    private static void setRefs(HashMap<String, HashSet<String>> newRefs) {
+        refs = newRefs;
     }
 
     static String getCellValue(String c) {
@@ -124,8 +122,8 @@ public class SuperCell {
     private static void updateCells(String cell) {
         saved = false;
         ArrayList<String> toRemove = new ArrayList<>();
-        for (String c : new HashSet<>(links.keySet())) {
-            if (c.equals(cell) || !links.get(c).contains(cell))
+        for (String c : new HashSet<>(refs.keySet())) {
+            if (c.equals(cell) || !refs.get(c).contains(cell))
                 continue;
 
             if (expressions.get(c) == null) {
@@ -149,35 +147,35 @@ public class SuperCell {
             expressions.remove(c);
     }
 
-    static boolean hasLink(String c1, String c2) {
+    static boolean hasRef(String c1, String c2) {
         if (c1.equals(c2))
             return true;
-        if (!links.containsKey(c1))
+        if (!refs.containsKey(c1))
             return false;
 
-        for (String c : links.get(c1)) {
-            if (hasLink(c, c2))
+        for (String c : refs.get(c1)) {
+            if (hasRef(c, c2))
                 return true;
         }
 
         return false;
     }
 
-    static void addLink(String c1, String c2) {
+    static void addRef(String c1, String c2) {
         saved = false;
-        if (!links.containsKey(c1)) {
-            links.put(c1, new HashSet<>());
+        if (!refs.containsKey(c1)) {
+            refs.put(c1, new HashSet<>());
         }
 
-        links.get(c1).add(c2);
+        refs.get(c1).add(c2);
     }
 
-    static void removeLinks(String c) {
-        if (links.containsKey(c))
-            links.remove(c);
+    static void removeRefs(String c) {
+        if (refs.containsKey(c))
+            refs.remove(c);
     }
 
-    static boolean isCellLink(String s) {
+    static boolean isCellRef(String s) {
         return s.matches("[a-zA-Z]+[1-9]+[0-9]*");
     }
 
@@ -226,7 +224,7 @@ public class SuperCell {
         return col;
     }
 
-    static void readFromFile(SpreadsheetView spreadsheetView, String filename) {
+    static void readFromFile(SpreadsheetView spreadsheetView, String filename) throws Exception {
         HashMap<String, String> newExprs = new HashMap<>();
         HashMap<String, String> styles = new HashMap<>();
         try (BufferedReader fileReader = new BufferedReader(new FileReader(new File(filename)))) {
@@ -268,23 +266,15 @@ public class SuperCell {
 
                 }
             }
+            saved = false;
         } catch (FileNotFoundException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.initStyle(StageStyle.UNDECORATED);
-            alert.setHeaderText("Не могу найти файл " + filename + ".");
-
-            alert.showAndWait();
+            throw new Exception("Не могу найти файл " + filename + ".");
         } catch (Exception e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.initStyle(StageStyle.UNDECORATED);
-            alert.setHeaderText("Ошибочка при чтении файла " + filename + ".");
-
-            alert.showAndWait();
+            throw new Exception("Ошибочка при чтении файла " + filename + ".");
         }
     }
 
-    static void writeToFile(String filename) {
+    static void writeToFile(String filename) throws Exception {
         try (FileWriter fileWriter = new FileWriter(filename)) {
             int r = rows.size();
             for (int i = 0; i < r; i++) {
@@ -302,7 +292,7 @@ public class SuperCell {
             }
             saved = true;
         } catch (Exception e) {
-            System.err.println("Ой, что-то не так с файлом... Попробуйте в другой раз.");
+            throw new Exception("Ой, что-то не так с файлом... Попробуйте в другой раз.");
         }
     }
 
@@ -346,7 +336,7 @@ public class SuperCell {
 
         SpreadsheetCell newElem;
         final HashMap<String, String> expressions = new HashMap<>();
-        final HashMap<String, HashSet<String>> newLinks = new HashMap<>();
+        final HashMap<String, HashSet<String>> newRefs = new HashMap<>();
         // Loops throw each row not to be removed, adding them to a array that contains the old row set,
         // but without the removed row.
         for (int i = 0; i < rowsOld.size(); i++) {
@@ -375,27 +365,27 @@ public class SuperCell {
                         expressions.put(nextCell, SuperCell.getCellExpression(currCell));
 
                         try {
-                            newLinks.put(nextCell, new HashSet<>());
+                            newRefs.put(nextCell, new HashSet<>());
                             String[] tokens = SuperLexer.tokenize(expressions.get(nextCell));
                             for (int k = 0; k < tokens.length; k++) {
-                                if (SuperCell.isCellLink(tokens[k]) && SuperCell.getCellRow(tokens[k]) > selectedRow) {
+                                if (SuperCell.isCellRef(tokens[k]) && SuperCell.getCellRow(tokens[k]) > selectedRow) {
                                     System.out.print(tokens[k] + "  ");
                                     tokens[k] = SuperCell.getCellName(SuperCell.getCellRow(tokens[k]) - 1, SuperCell.getCellColumn(tokens[k]));
                                     System.out.println(tokens[k]);
-//                                    newLinks.get(nextCell).add(tokens[i]);
+//                                    newRefs.get(nextCell).add(tokens[i]);
                                 }
-                                newLinks.get(nextCell).add(tokens[k]);
+                                newRefs.get(nextCell).add(tokens[k]);
                             }
                             expressions.put(nextCell, String.join("", (CharSequence[]) tokens));
                         } catch (Exception e) {
                             System.out.println(">" + e.getMessage() + " " + e.getClass() + " " + e.getCause());
-                            newLinks.put(nextCell, new HashSet<>());
+                            newRefs.put(nextCell, new HashSet<>());
                             expressions.remove(nextCell);
 //                          newExpressions.put(c, "");
                         }
 
-                        if (newLinks.get(nextCell).isEmpty())
-                            newLinks.remove(nextCell);
+                        if (newRefs.get(nextCell).isEmpty())
+                            newRefs.remove(nextCell);
                     }
                     list.add(newElem);
                 }
@@ -409,7 +399,7 @@ public class SuperCell {
         // Updates the grid.
         oldGrid.setRows(rows);
         SuperCell.setRows(rows);
-        SuperCell.setLinks(newLinks);//////////////////////////////////////////////////////////////
+        SuperCell.setRefs(newRefs);//////////////////////////////////////////////////////////////
         oldGrid.getColumnHeaders().addAll(oldGrid.getColumnHeaders());
         SuperCell.setExpressions(expressions);
         table.setGrid(oldGrid);
@@ -420,6 +410,8 @@ public class SuperCell {
             table.getSelectionModel().clearSelection();
             table.getSelectionModel().select(selectedRow > 0 ? selectedRow - 1 : selectedRow, table.getColumns().get(selectedCol));
         }
+
+        saved = false;
     }
 
     static SpreadsheetCell createEmptyCell(int row, int column, int rowSpan, int colSpan) {
@@ -448,5 +440,7 @@ public class SuperCell {
         for (int i = spreadSheetView.getColumns().size(); i < spreadSheetView.getColumns().size() + dCol; i++) {
             spreadSheetView.getColumns().get(spreadSheetView.getColumns().size() - 1).setPrefWidth(90);
         }
+
+        saved = false;
     }
 }

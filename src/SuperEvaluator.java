@@ -19,7 +19,7 @@ public class SuperEvaluator extends SuperProcessingStrategy {
                 return CONSTANT;
             } catch (NumberFormatException e) {}
 
-            if (SuperCell.isCellLink(val))
+            if (SuperCell.isCellRef(val))
                 return LINK;
 
             return UNKNOWN;
@@ -28,8 +28,8 @@ public class SuperEvaluator extends SuperProcessingStrategy {
 
     public static SuperBigInteger evaluate(ArrayList<String> rpn, String cell) throws SuperLoopException {
         Stack<String> operands = new Stack<String>();
-        HashSet<String> oldLinks = SuperCell.getLinks().get(cell);
-        SuperCell.removeLinks(cell);
+        HashSet<String> oldLinks = SuperCell.getRefs().get(cell);
+        SuperCell.removeRefs(cell);
         while (!rpn.isEmpty()) {
             String head = rpn.remove(0);
             OperandType ot = OperandType.getType(head);
@@ -40,14 +40,14 @@ public class SuperEvaluator extends SuperProcessingStrategy {
                             SuperBigInteger.tryParse(operands.pop())).toString());
                     break;
                 case LINK:
-                    if (SuperCell.hasLink(head, cell)) {
+                    if (SuperCell.hasRef(head, cell)) {
                         if (oldLinks != null) {
                             for (String s : oldLinks)
-                                SuperCell.addLink(cell, s);
+                                SuperCell.addRef(cell, s);
                         }
                         throw new SuperLoopException(head, cell);
                     }
-                    SuperCell.addLink(cell, head);
+                    SuperCell.addRef(cell, head);
                     operands.push(SuperCell.getCellValue(head));
                     break;
                 case CONSTANT:

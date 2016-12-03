@@ -83,8 +83,8 @@ abstract class SuperProcessingStrategy {
         switch (val) {
             case "(": return ")";
             case "[": return "]";
-                case "{": return "}";
-                case ")": return "(";
+            case "{": return "}";
+            case ")": return "(";
             case "]": return "[";
             case "}": return "{";
             default: return null;

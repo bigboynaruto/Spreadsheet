@@ -27,7 +27,7 @@ import java.io.File;
  * Created by sakura on 10/26/16.
  */
 public class SuperSpreadsheet extends Application {
-    private final String EXTENSION = "dno";
+    private final String EXTENSION = "sad";
 
     private SpreadsheetView spreadSheetView;
     private TextField tf, cellChooser;
@@ -117,7 +117,7 @@ public class SuperSpreadsheet extends Application {
         cellChooser.setMaxWidth(100);
         cellChooser.setOnAction(actionEvent -> {
             String cell = cellChooser.getText();
-            if (!SuperCell.isCellLink(cell))
+            if (!SuperCell.isCellRef(cell))
                 return;
 
             int row = SuperCell.getCellRow(cell), col = SuperCell.getCellColumn(cell);
@@ -162,6 +162,24 @@ public class SuperSpreadsheet extends Application {
         ((VBox) scene.getRoot()).getChildren().addAll(createMenuBar(primaryStage), getPanel());
 
         primaryStage.setScene(scene);
+        primaryStage.setOnCloseRequest(we -> {
+            if (!SuperCell.isSaved()) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.initStyle(StageStyle.UNDECORATED);
+                alert.setHeaderText("Ой, а вы не сохранили свой файлик... Точно хотите выйти?");
+                alert.setContentText("Подумайте дважды, перед тем, как соглашаться!");
+
+                alert.showAndWait();
+
+                if (alert.getResult().equals(ButtonType.OK)) {
+                    Platform.exit();
+                }
+            }
+            else Platform.exit();
+
+            if (we != null)
+                we.consume();
+        });
         primaryStage.show();
     }
 
@@ -185,11 +203,12 @@ public class SuperSpreadsheet extends Application {
                 return;
 
             try {
-                SuperCell.writeToFile(file.getName());
+                SuperCell.writeToFile(file.getName() + "." + EXTENSION);
             } catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.initStyle(StageStyle.UNDECORATED);
-                alert.setHeaderText(e.getMessage());
+                alert.setHeaderText("Ой...");
+                alert.setContentText(e.getMessage());
 
                 alert.showAndWait();
             }
@@ -205,13 +224,15 @@ public class SuperSpreadsheet extends Application {
             } catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.initStyle(StageStyle.UNDECORATED);
-                alert.setHeaderText(e.getMessage());
+                alert.setHeaderText("Ой...");
+                alert.setContentText(e.getMessage());
 
                 alert.showAndWait();
             }
         });
         exitItem.setOnAction(actionEvent -> {
-            if (!SuperCell.isSaved()) {
+            primaryStage.getOnCloseRequest().handle(null);
+            /*if (!SuperCell.isSaved()) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.initStyle(StageStyle.UNDECORATED);
                 alert.setHeaderText("Ой, а вы не сохранили свой файлик... Точно хотите выйти?");
@@ -223,7 +244,7 @@ public class SuperSpreadsheet extends Application {
                     Platform.exit();
                 }
             }
-            else Platform.exit();
+            else Platform.exit();*/
         });
         menuFile.getItems().addAll(openItem, saveItem, new SeparatorMenuItem(), exitItem);
 
