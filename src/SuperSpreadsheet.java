@@ -166,11 +166,10 @@ public class SuperSpreadsheet extends Application {
         stage.setScene(scene);
         stage.setOnCloseRequest(we -> {
             if (!SuperCell.isSaved()) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.initOwner(stage);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.setHeaderText("Ой, а вы не сохранили свой файлик... Точно хотите выйти?");
-                alert.setContentText("Подумайте дважды, перед тем, как соглашаться!");
+                Alert alert = new SuperAlert(Alert.AlertType.CONFIRMATION)
+                        .owner(stage)
+                        .header("Ой, а вы не сохранили свой файлик... Точно хотите выйти?")
+                        .content("Подумайте дважды, перед тем, как соглашаться!");
 
                 alert.showAndWait();
 
@@ -183,7 +182,9 @@ public class SuperSpreadsheet extends Application {
             if (we != null)
                 we.consume();
         });
+
         stage.show();
+        spreadSheetView.setPrefSize(stage.getWidth(), stage.getHeight());
     }
 
     private MenuBar createMenuBar() {
@@ -206,15 +207,13 @@ public class SuperSpreadsheet extends Application {
                 return;
 
             try {
-                SuperCell.writeToFile(file.getName() + "." + EXTENSION);
+                SuperCell.writeToFile(file.getAbsolutePath() + "." + EXTENSION);
             } catch (Exception e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.initOwner(stage);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.setHeaderText("Ой...");
-                alert.setContentText(e.getMessage());
-
-                alert.showAndWait();
+                new SuperAlert(Alert.AlertType.ERROR)
+                        .owner(stage)
+                        .header("Ой...")
+                        .content(e.getMessage())
+                        .showAndWait();
             }
         });
         openItem.setOnAction(actionEvent -> {
@@ -224,15 +223,13 @@ public class SuperSpreadsheet extends Application {
                 return;
 
             try {
-                SuperCell.readFromFile(spreadSheetView, file.getName());
+                SuperCell.readFromFile(spreadSheetView, file.getAbsolutePath());
             } catch (Exception e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.initOwner(stage);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.setHeaderText("Ой...");
-                alert.setContentText(e.getMessage());
-
-                alert.showAndWait();
+                new SuperAlert(Alert.AlertType.ERROR)
+                        .owner(stage)
+                        .header("Ой...")
+                        .content(e.getMessage())
+                        .showAndWait();
             }
         });
         exitItem.setOnAction(actionEvent -> {
@@ -268,13 +265,10 @@ public class SuperSpreadsheet extends Application {
 
         cutItem.setOnAction(actionEvent -> {
             if (spreadSheetView.getSelectionModel().getSelectedCells().size() < 1) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.initOwner(stage);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.setTitle("Ошибочка...");
-                alert.setHeaderText("Выделите сначала ячейку...");
-
-                alert.showAndWait();
+                new SuperAlert(Alert.AlertType.ERROR)
+                        .owner(stage)
+                        .header("Выделите сначала ячейку...")
+                        .showAndWait();
                 return;
             }
             int row = spreadSheetView.getSelectionModel().getFocusedCell().getRow();
@@ -283,13 +277,10 @@ public class SuperSpreadsheet extends Application {
         });
         pasteItem.setOnAction(actionEvent -> {
             if (spreadSheetView.getSelectionModel().getSelectedCells().size() < 1) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.initOwner(stage);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.setTitle("Ошибочка...");
-                alert.setHeaderText("Выделите сначала ячейку...");
-
-                alert.showAndWait();
+                new SuperAlert(Alert.AlertType.ERROR)
+                        .owner(stage)
+                        .header("Выделите сначала ячейку...")
+                        .showAndWait();
                 return;
             }
 
@@ -298,13 +289,11 @@ public class SuperSpreadsheet extends Application {
             try {
                 SuperCell.pasteCell(row, col);
             } catch (SuperCellNotSelectedException | SuperLoopException | SuperInvalidCharacterException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.initOwner(stage);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.setTitle("Ошибочка...");
-                alert.setHeaderText(e.getMessage());
-
-                alert.showAndWait();
+                new SuperAlert(Alert.AlertType.ERROR)
+                        .owner(stage)
+                        .header("Ошибочка...")
+                        .content(e.getMessage())
+                        .showAndWait();
             }
 
             tf.setText(SuperCell.getCellExpression(row, col));
@@ -313,21 +302,29 @@ public class SuperSpreadsheet extends Application {
         menuEdit.getItems().addAll(cutItem, pasteItem);
 
         Menu menuHelp = new Menu("Помощь");
-        MenuItem aboutItem = new MenuItem("Справка");
-        menuHelp.getItems().add(aboutItem);
-        menuHelp.setOnAction((actionEvent) -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.initOwner(stage);
-            alert.initStyle(StageStyle.UNDECORATED);
-            alert.setHeaderText("Операторы");
+        MenuItem helpItem = new MenuItem("Справка");
+        MenuItem aboutItem = new MenuItem("Об авторе");
+        menuHelp.getItems().addAll(helpItem, aboutItem);
+        helpItem.setOnAction((actionEvent) -> {
 
             String operators = "";
             for (SuperExpressionOperator operator : SuperProcessingStrategy.getOperators()) {
                 operators += operator.toString() + "\n";
             }
-            alert.setContentText(operators);
 
-            alert.showAndWait();
+            new SuperAlert(Alert.AlertType.NONE)
+                    .owner(stage)
+                    .header("Операторы")
+                    .content(operators)
+                    .showAndWait();
+        });
+        aboutItem.setOnAction((actionEvent) -> {
+            new SuperAlert(Alert.AlertType.NONE)
+                    .owner(stage)
+                    .header("Anime Spreadsheet")
+                    .content("Хороший, милый и вообще.\n" +
+                            "© Антон Перепелица 2016")
+                    .showAndWait();
         });
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView, menuHelp);
@@ -372,7 +369,6 @@ public class SuperSpreadsheet extends Application {
         str = str.replaceAll(property + ":.+?;", "");
         str = str + property + ":" + value + ";";
 
-        assert style != null;
         style.setValue(str);
     }
 
@@ -399,27 +395,23 @@ public class SuperSpreadsheet extends Application {
                     if (s.getMethodName().equals("showAndWait"))
                         return;
                 }
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.initOwner(stage);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.setTitle("Ошибочка...");
-                alert.setHeaderText("Кажется, вы что-то не так написали. Но я исправил!");
-                alert.setContentText(SuperCell.getCellExpression(cellName));
-
-                alert.showAndWait();
+                new SuperAlert(Alert.AlertType.ERROR)
+                        .owner(stage)
+                        .header("Кажется, вы что-то не так написали. Но я исправил!")
+                        .content(SuperCell.getCellExpression(cellName))
+                        .showAndWait();
             }
         } catch (SuperLoopException | SuperInvalidCharacterException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.initOwner(stage);
-            alert.initStyle(StageStyle.UNDECORATED);
-            alert.setTitle("Ошибочка...");
-            alert.setHeaderText(e.getMessage());
-
-            alert.showAndWait();
+            new SuperAlert(Alert.AlertType.ERROR)
+                    .owner(stage)
+                    .header("Ошибочка...")
+                    .content(e.getMessage())
+                    .showAndWait();
             try {
                 SuperCell.setCellExpression(cellName, oldExpr);
             } catch (Exception ignored) {}
         }
+        tf.setText(cell.getText());
     }
 
     private void normalGrid(GridBase grid) {
