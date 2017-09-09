@@ -1,2 +1,2 @@
 # Spreadsheet
-Spreadsheet on JavaFX with ControlsFX
+JavaFX Spreadsheet with ControlsFX
